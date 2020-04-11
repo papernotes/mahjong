@@ -1,20 +1,22 @@
 {
   "name": "mahjong",
-  "version": "0.0.1",
-  "description": "Mahjong with Sockets.IO and React",
+  "version": "1.0.0",
+  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/papernotes/mahjong.git"
+  },
   "author": "",
-  "license": "MIT",
-  "dependencies": {
-    "@types/jest": "^25.2.1",
-    "@types/node": "^13.11.1",
-    "@types/react": "^16.9.34",
-    "@types/react-dom": "^16.9.6",
-    "express": "^4.17.1",
-    "socket.io": "^2.3.0",
-    "typescript": "^3.8.3"
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/papernotes/mahjong/issues"
+  },
+  "homepage": "https://github.com/papernotes/mahjong#readme",
+  "devDependencies": {
+    "concurrently": "^5.1.0"
   }
 }
