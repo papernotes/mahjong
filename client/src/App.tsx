@@ -1,26 +1,44 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import React, { Component } from 'react';
+import socketIOClient from 'socket.io-client';
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+type AppProps = {
+
+}
+
+type AppState = {
+  connections: number,
+  count: number
+}
+
+const socket = socketIOClient('http://localhost:3001/');
+
+class App extends Component<AppProps, AppState> {
+
+  constructor(props: AppProps) {
+    super(props);
+    this.state = {
+      connections: 0,
+      count: 0
+    }
+  }
+
+  incrementCount = () => {
+    socket.emit('increment count', () => {});
+  }
+
+  componentDidMount() {
+    // subscribe to the update count
+    socket.on('update count', (count: number) => this.setState({count}));
+  }
+
+  render() {
+    return (
+      <div>
+        <p>Count: {this.state.count}</p>
+        <button onClick={this.incrementCount}>Increment Count</button>
+      </div>
+    );
+  }
 }
 
 export default App;
