@@ -3,6 +3,8 @@ const server = require('http').createServer(app);
 const io = require('socket.io')(server);
 const port = 3001
 
+let count = 0
+
 app.get('/', (req, res) => {
   res.send('<h1>Hello</h1>');
 });
@@ -10,9 +12,14 @@ app.get('/', (req, res) => {
 io.on('connection', (socket) => {
   console.log('User connected');
 
-  socket.emit("my_new_connection", () => console.log("Emitting new connection"));
-  socket.on("disconnect", () => console.log("User disconnected"));
+  // data should be the new count number
+  socket.on('increment count', () => {
+    count += 1;
+    console.log("increment received");
+    io.emit("update count", count);
+  });
 
+  socket.on("disconnect", () => console.log("User disconnected"));
 });
 
 server.listen(port, () => {
