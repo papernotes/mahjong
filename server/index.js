@@ -10,7 +10,8 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-  console.log('User connected');
+  console.log('User connected - ' + socket.id);
+  io.to(`${socket.id}`).emit('id received', socket.id);
 
   // data should be the new count number
   socket.on('increment count', () => {

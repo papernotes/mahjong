@@ -1,24 +1,21 @@
 import React, { Component } from 'react';
 import socketIOClient from 'socket.io-client';
 
-type AppProps = {
-
-}
-
 type AppState = {
-  connections: number,
-  count: number
+  count: number,
+  socketId: string
 }
 
 const socket = socketIOClient('http://localhost:3001/');
 
-class App extends Component<AppProps, AppState> {
 
-  constructor(props: AppProps) {
-    super(props);
+class App extends Component<{}, AppState> {
+
+  constructor() {
+    super({});
     this.state = {
-      connections: 0,
-      count: 0
+      count: 0,
+      socketId: ''
     }
   }
 
@@ -29,6 +26,7 @@ class App extends Component<AppProps, AppState> {
   componentDidMount() {
     // subscribe to the update count
     socket.on('update count', (count: number) => this.setState({count}));
+    socket.on('id received', (socketId: any) => this.setState({socketId}));
   }
 
   render() {
