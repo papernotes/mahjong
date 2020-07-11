@@ -36,7 +36,7 @@ io.on('connection', (socket) => {
   socket.on('drawHead', (payload) => {
     try {
       const res = db.drawHead(payload['roomId'], payload['playerId']);
-      io.to(socket.id).emit('drewHead', res);
+      io.to(socket.id).emit('drewTile', Object.keys(res)[0]);
     } catch (err) {
       io.to(socket.id).emit('cannotDrawHead', true);
     }
@@ -45,7 +45,7 @@ io.on('connection', (socket) => {
   socket.on('drawTail', (payload) => {
     try {
       const res = db.drawTail(payload['roomId'], payload['playerId']);
-      io.to(socket.id).emit('drewHead', res);
+      io.to(socket.id).emit('drewTile', Object.keys(res)[0]);
     } catch (err) {
       io.to(socket.id).emit('cannotDrawTail', true);
     }

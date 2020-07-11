@@ -231,6 +231,15 @@ describe('JsonDatabase', () => {
         sinon.assert.match(err.message, NON_EXISTENT_ROOM_ERROR);
       }
     });
+
+    it('addPlayer() throws an error for a full room', () => {
+      sandbox.stub(JsonDatabase.prototype, <any>'isRoomFull').returns(true)
+      try {
+        jsonDb.addPlayer('room1');
+      } catch (err) {
+        sinon.assert.match(err.message, FULL_ROOM_ERROR);
+      }
+    });
   });
 
   describe('Player', () => {

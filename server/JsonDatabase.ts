@@ -135,13 +135,7 @@ class JsonDatabase implements Database {
   }
 
   private isRoomFull(roomId: string) : boolean {
-    if (!this.roomExists(roomId)) {
-      this.throwNonExistentRoom();
-    }
-    if (this.db[roomId]['numPlayers'] > 4) {
-      this.throwFullRoom();
-    }
-    return false;
+    return this.db[roomId]['numPlayers'] > 4
   }
 
   private isTileDiscarded(roomId: string, tileId: number) : boolean {
@@ -282,6 +276,9 @@ class JsonDatabase implements Database {
   addPlayer(roomId: string) : string {
     if (!this.roomExists(roomId)) {
       this.throwNonExistentRoom();
+    }
+    if (this.isRoomFull(roomId)) {
+      this.throwFullRoom();
     }
     const newPlayerId = this.newId();
     this.db[roomId]['players'][newPlayerId] = JSON.parse(JSON.stringify(this.newPlayerValues));
