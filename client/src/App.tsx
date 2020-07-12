@@ -1,83 +1,58 @@
-import React, { Component } from 'react';
-import socketIOClient from 'socket.io-client';
-
-type AppState = {
-  socketId: string,
-  playerId: string,
-  roomId: string,
-  tiles: number[]
-}
-
-type Tile = {
-  id: string
-}
-
-const socket = socketIOClient('http://localhost:3001/');
+import React, { useEffect, useState } from 'react';
+import io from 'socket.io-client';
 
 
-class App extends Component<{}, AppState> {
+const socket = io('http://localhost:3001/');
 
-  constructor() {
-    super({});
-    this.state = {
-      socketId: '',
-      playerId: '',
-      roomId: '',
-      tiles: []
-    }
+function App() {
+  const [playerId, setPlayerId] = useState('');
+  const [roomId, setRoomId] = useState('');
+  const [tiles, setTiles] = useState<number[]>([]);
+
+  useEffect( () => {
+    socket.on('drewTile', (tileId: number) => {
+      setTiles(tiles => [...tiles, tileId]);
+    })
+    socket.on('cannotDrawHead', () => console.log('Cannot draw head anymore'));
+    socket.on('cannotDrawTail', () => console.log('Cannot draw tail anymore'));
+    socket.on('createdNewRoom', (data: any) => {
+      setPlayerId(data['playerId']);
+      setRoomId(data['roomId']);
+    }) //eslint-disable-next-line
+  }, []);
+
+  function drawHead() {
+    socket.emit('drawHead', {'roomId': roomId, 'playerId': playerId});
   }
 
-  drawHead = () => {
-    socket.emit('drawHead', {'roomId': this.state.roomId, 'playerId': this.state.playerId});
+  function drawTail() {
+    socket.emit('drawTail', {'roomId': roomId, 'playerId': playerId});
   }
 
-  drawTail = () => {
-    socket.emit('drawTail', {'roomId': this.state.roomId, 'playerId': this.state.playerId});
-  }
-
-  superDrawHead = () => {
+  function superDrawHead() {
     for (let i = 0; i < 143; i ++) {
-      socket.emit('drawHead', {'roomId': this.state.roomId, 'playerId': this.state.playerId});
+      socket.emit('drawHead', {'roomId': roomId, 'playerId': playerId});
     }
   }
 
-  newRoom = () => {
+  function newRoom() {
     socket.emit('newRoom', () => {});
   }
 
-  componentDidMount() {
-    socket.on('id received', (socketId: any) => this.setState({socketId}));
-    socket.on('drewTile', (tileId: number) => {
-      const newTiles = this.state['tiles'].concat(tileId);
-      this.setState({tiles: newTiles});
-    })
-    socket.on('cannotDrawHead', (data: any) => console.log('Cannot draw head anymore'));
-    socket.on('cannotDrawTail', (data: any) => console.log('Cannot draw tail anymore'));
-    socket.on('createdNewRoom', (data: any) => {
-      this.setState({
-        playerId: data['playerId'],
-        roomId: data['roomId']
-      })
-    })
-  }
-
-  generateTiles = () => {
-    const listItems = this.state.tiles.map( (tileId) => <li>Tile: {tileId}</li>)
+  function generateTiles() {
+    const listItems = tiles.map( tileId => <li key={tileId}>Tile: {tileId}</li>)
     return listItems;
   }
 
-  render() {
-    const listTiles = this.generateTiles();
-    return (
-      <div>
-        <div>{listTiles}</div>
-        <button onClick={this.drawHead}>Draw Head</button>
-        <button onClick={this.drawTail}>Draw Tail</button>
-        <button onClick={this.newRoom}>New Room</button>
-        <button onClick={this.superDrawHead}>Super Draw Head - Draws 144 times</button>
-      </div>
-    );
-  }
+  return (
+    <div>
+      <div>{generateTiles()}</div>
+      <button onClick={drawHead}>Draw Head</button>
+      <button onClick={drawTail}>Draw Tail</button>
+      <button onClick={newRoom}>New Room</button>
+      <button onClick={superDrawHead}>Super Draw Head - Draws 144 times</button>
+    </div>
+  );
 }
 
 export default App;
