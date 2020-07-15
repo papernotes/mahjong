@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 import io from 'socket.io-client';
+import Tile from '../components/Tile';
 
 type MatchParams = {
   roomId: string,
@@ -44,7 +45,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
   }
 
   function superDrawHead() {
-    for (let i = 0; i < 143; i ++) {
+    for (let i = 0; i < 144; i ++) {
       socket.emit('drawHead', {'roomId': roomId, 'playerId': playerId});
     }
   }
@@ -54,7 +55,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
   }
 
   function generateTiles() {
-    const listItems = tiles.map( tileId => <li key={tileId}>Tile: {tileId}</li>)
+    const listItems = tiles.map( tileId => <Tile key={tileId} id={tileId}/>)
     return listItems;
   }
 

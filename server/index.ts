@@ -8,10 +8,6 @@ import Database from './Database';
 
 const db = new JsonDatabase();
 
-app.get('/', (req, res) => {
-  res.send('<h1>Hello</h1>');
-});
-
 io.on('connection', (socket) => {
   console.log('User connected - ' + socket.id);
 

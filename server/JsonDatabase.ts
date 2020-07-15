@@ -155,7 +155,7 @@ class JsonDatabase implements Database {
 
   // TODO player hand limit?
   private canDrawFromHead(roomId: string) : boolean {
-    return this.db[roomId]['headIndex'] < this.db[roomId]['mapping'].length;
+    return this.db[roomId]['headIndex'] <= this.db[roomId]['mapping'].length;
   }
 
   private canDrawFromTail(roomId: string) : boolean {
@@ -166,7 +166,7 @@ class JsonDatabase implements Database {
   private canDraw(roomId: string): boolean {
     const headIndex = this.db[roomId]['headIndex'];
     const actualTailIndex = this.db[roomId]['mapping'].length - this.db[roomId]['tailIndex'] - 1;
-    return headIndex < actualTailIndex;
+    return headIndex <= actualTailIndex;
   }
 
   private canDrawPlayerDiscarded(roomId: string, playerId: string) : boolean {

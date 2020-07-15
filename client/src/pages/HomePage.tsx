@@ -18,7 +18,7 @@ function HomePage() {
       socket.removeAllListeners();
       socket.close();
     }
-  }, []);
+  }, [history]);
 
   function newRoom() {
     socket.emit('newRoom', () => {});

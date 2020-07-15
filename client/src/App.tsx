@@ -14,7 +14,6 @@ function App() {
         <Route exact path="/new_game" component={NewGamePage}/>
       </Switch>
     </BrowserRouter>
-
   );
 }
 
