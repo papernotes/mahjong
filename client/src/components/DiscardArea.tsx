@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import interact from 'interactjs';
-import styled from 'styled-components';
-import io from 'socket.io-client';
+import React, { useEffect } from "react";
+import interact from "interactjs";
+import styled from "styled-components";
+import io from "socket.io-client";
 
 type DiscardAreaProps = {
   roomId: string;
   playerId: string;
-}
+};
 
 const DiscardAreaStyle = styled.div`
   background-color: #ccc;
@@ -16,56 +16,51 @@ const DiscardAreaStyle = styled.div`
   padding: 10px;
   width: 80%;
   height: 400px;
-`
+`;
 
-const socket = io('http://localhost:3001/');
+const socket = io("http://localhost:3001/");
 
-function DiscardArea(props : DiscardAreaProps) {
-  const [playerId, setPlayerId] = useState('')
-  const [roomId, setRoomId] = useState('')
-
-  function assignDiscardArea() {
-    // TODO stale closure
-    // roomId and playerId are ''
-    console.log(roomId, playerId);
-
-    interact('.discardarea')
-      .dropzone({
-        accept: '.tile',
-        overlap: 0.75,
-        ondragleave: (event) => {
-          console.log("Emit draw from discard");
-        },
-        ondrop: (event) => {
-          console.log("Emit discardTile()", roomId, event.relatedTarget.id, playerId);
-          socket.emit('discardTile', {'roomId': roomId, 'tileId': event.relatedTarget.id, 'playerId': playerId})
-        }
-      });
-  }
-
-  useEffect( () => {
+function DiscardArea({ roomId, playerId }: DiscardAreaProps) {
+  useEffect(() => {
     socket.connect();
 
-    setPlayerId(props.playerId);
-    setRoomId(props.roomId);
-    assignDiscardArea();      
+    socket.on("discardedTile", () =>
+      console.log("Successfully discarded tile")
+    );
 
-    socket.on('discardedTile', () => console.log('Successfully discarded tile'));
+    const i = interact(".discardarea").dropzone({
+      accept: ".tile",
+      overlap: 0.75,
+      ondragleave: (event) => {
+        console.log("Emit draw from discard");
+      },
+      ondrop: (event) => {
+        console.log(
+          "Emit discardTile()",
+          roomId,
+          event.relatedTarget.id,
+          playerId
+        );
+        socket.emit("discardTile", {
+          roomId,
+          tileId: event.relatedTarget.id,
+          playerId,
+        });
+      },
+    });
 
-    return ( () => {
+    return () => {
       // TODO needed?
-      interact('.discardarea').unset();
+      i.unset();
 
       socket.removeAllListeners();
-      socket.close()
-    })
-  }, [props.playerId, props.roomId]);
+      socket.close();
+    };
+  }, [playerId, roomId]);
 
-  return(
-    <DiscardAreaStyle className='discardarea'>
-      Discard Area
-    </DiscardAreaStyle>
-  )
+  return (
+    <DiscardAreaStyle className="discardarea">Discard Area</DiscardAreaStyle>
+  );
 }
 
 export default DiscardArea;
