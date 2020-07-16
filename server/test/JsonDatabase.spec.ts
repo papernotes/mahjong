@@ -390,7 +390,7 @@ describe('JsonDatabase', () => {
       const res = jsonDb.discardTile('room1', 1, 'player1');
 
       sinon.assert.calledOnce(writeSpy);
-      sinon.assert.match(res, true);
+      sinon.assert.match(res, 1);
     });
 
     it('discardTile() throws an error for a non-existent room', () => {

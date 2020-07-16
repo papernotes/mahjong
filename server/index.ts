@@ -47,6 +47,18 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('discardTile', (payload) => {
+    console.log("Trying to discard tile");
+    console.log(payload['roomId'], parseInt(payload['tileId']), payload['playerId'])
+    try {
+      const res = db.discardTile(payload['roomId'], parseInt(payload['tileId']), payload['playerId']);
+      io.to(socket.id).emit('discardedTile', res);
+    } catch (err) {
+      console.log(err);
+      io.to(socket.id).emit('cannotDiscardTile', true);
+    }
+  })
+
 });
 
 server.listen(port, () => {

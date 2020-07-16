@@ -31,11 +31,18 @@ class TileUtils {
 
   static getTileNumber(type: string, tileId: number) : number {
     const min = TileUtils.getRangeMin(type);
-    // Dots work around
-    if (min === 0) {
-      return (tileId % 9) + 1;
+    const range = tileId - min;
+
+    switch(type) {
+      case 'wind':
+        return (range % 4) + 1;
+      case 'dragon':
+        return (range % 3) + 1;
+      case 'flower':
+        return (range % 8) + 1;
+      default:
+        return (range % 9) + 1;
     }
-    return (tileId % min) - (tileId - min) + 1;
   }
 }
 

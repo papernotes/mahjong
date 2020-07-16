@@ -34,7 +34,7 @@ interface Database {
   // Checks to see if the tile is discarded
   // Checks to see if tile's owner is not given playerId
   drawTileFromOtherPlayer(roomId: string, tileId: number, playerId: string, otherPlayerId: string) : boolean;
-  discardTile(roomId: string, tileId: number, playerId: string) : boolean;
+  discardTile(roomId: string, tileId: number, playerId: string) : number;
 
   // Tile
   revealTile(roomId: string, tileId: number, playerId: string) : boolean;

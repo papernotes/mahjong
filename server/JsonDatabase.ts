@@ -347,7 +347,7 @@ class JsonDatabase implements Database {
     return this.writeToDb();
   }
 
-  discardTile(roomId: string, tileId: number, playerId: string) : boolean {
+  discardTile(roomId: string, tileId: number, playerId: string) : number {
     if (!this.roomExists(roomId)) {
       this.throwNonExistentRoom();
     }
@@ -364,7 +364,8 @@ class JsonDatabase implements Database {
 
     this.db[roomId]['players'][playerId]['hand'] = handTiles.filter( val => val != tileId);
     this.db[roomId]['players'][playerId]['discardedTiles'] = discardedTiles.concat(tileId);
-    return this.writeToDb();
+    this.writeToDb();
+    return tileId;
   }
 
   // TILE

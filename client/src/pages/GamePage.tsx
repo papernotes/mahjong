@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 import io from 'socket.io-client';
 import Tile from '../components/Tile';
+import DiscardArea from '../components/DiscardArea';
 
 type MatchParams = {
   roomId: string,
@@ -61,7 +62,8 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
 
   return (
     <div>
-      <div>Game Page - {match.params.roomId} </div>
+      <h2>Game Page - {match.params.roomId} </h2>
+      <DiscardArea roomId={roomId} playerId={playerId}/>
       <div>{generateTiles()}</div>
       <button onClick={goHome}>Go Home</button>
       <button onClick={drawHead}>Draw Head</button>
