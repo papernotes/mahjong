@@ -1,13 +1,24 @@
 import React, { useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 import io from 'socket.io-client';
+import styled from "styled-components";
+
 import Tile from '../components/Tile';
 import DiscardArea from '../components/DiscardArea';
+import { Droppable } from 'react-beautiful-dnd';
+import { DragDropContext } from 'react-beautiful-dnd';
 
 type MatchParams = {
   roomId: string,
   playerId: string
 }
+
+const TileList = styled.div`
+  padding: 8px;
+  display: flex;
+`
+
+const HandArea = styled.div``
 
 const socket = io('http://localhost:3001/');
 
@@ -55,21 +66,48 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     history.push('/');
   }
 
-  function generateTiles() {
-    const listItems = tiles.map( tileId => <Tile key={tileId} id={tileId}/>)
-    return listItems;
+  function onDragEnd(result: any) {
+    const { destination, source, draggableId } = result;
+    if (!destination) {
+      return;
+    }
+    if (destination.droppableId === source.draggableId &&
+        destination.index === source.index) {
+      return;
+    }
+
+    const newTiles = Array.from(tiles);
+    newTiles.splice(source.index, 1)
+    newTiles.splice(destination.index, 0, draggableId);
+
+    setTiles(newTiles)
   }
 
   return (
-    <div>
-      <h2>Game Page - {match.params.roomId} </h2>
-      <DiscardArea roomId={roomId} playerId={playerId}/>
-      <div>{generateTiles()}</div>
-      <button onClick={goHome}>Go Home</button>
-      <button onClick={drawHead}>Draw Head</button>
-      <button onClick={drawTail}>Draw Tail</button>
-      <button onClick={superDrawHead}>Super Draw Head - Draws 144 times</button>
-    </div>
+    <DragDropContext
+      onDragEnd={onDragEnd}>
+      <div>
+        <h2>Game Page - {match.params.roomId} </h2>
+        <DiscardArea roomId={roomId} playerId={playerId}/>
+        <HandArea>
+          <Droppable droppableId={playerId} direction='horizontal'>
+            {(provided, snapshot) =>
+              <TileList
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+              >
+                {tiles.map( (tileId, index) => <Tile key={tileId} id={tileId} index={index}/>)}
+                {provided.placeholder}
+              </TileList>
+            }
+          </Droppable>
+        </HandArea>
+        <button onClick={goHome}>Go Home</button>
+        <button onClick={drawHead}>Draw Head</button>
+        <button onClick={drawTail}>Draw Tail</button>
+        <button onClick={superDrawHead}>Super Draw Head - Draws 144 times</button>
+      </div>
+    </DragDropContext>
   );
 }
 
