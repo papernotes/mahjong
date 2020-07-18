@@ -1,11 +1,13 @@
 import React, { useEffect } from "react";
-import interact from "interactjs";
+import { Droppable } from 'react-beautiful-dnd';
 import styled from "styled-components";
+import TileList from '../components/TileList';
 import io from "socket.io-client";
 
 type DiscardAreaProps = {
   roomId: string;
   playerId: string;
+  tiles: number[];
 };
 
 const DiscardAreaStyle = styled.div`
@@ -13,14 +15,15 @@ const DiscardAreaStyle = styled.div`
   border: dashed 4px transparent;
   border-radius: 4px;
   margin: 10px auto 30px;
+  display: flex;
   padding: 10px;
-  width: 80%;
-  height: 400px;
+  width: 100%;
+  height: 200px;
 `;
 
 const socket = io("http://localhost:3001/");
 
-function DiscardArea({ roomId, playerId }: DiscardAreaProps) {
+function DiscardArea({ roomId, playerId, tiles }: DiscardAreaProps) {
   useEffect(() => {
     socket.connect();
 
@@ -28,38 +31,21 @@ function DiscardArea({ roomId, playerId }: DiscardAreaProps) {
       console.log("Successfully discarded tile")
     );
 
-    const i = interact(".discardarea").dropzone({
-      accept: ".tile",
-      overlap: 0.75,
-      ondragleave: (event) => {
-        console.log("Emit draw from discard");
-      },
-      ondrop: (event) => {
-        console.log(
-          "Emit discardTile()",
-          roomId,
-          event.relatedTarget.id,
-          playerId
-        );
-        socket.emit("discardTile", {
-          roomId,
-          tileId: event.relatedTarget.id,
-          playerId,
-        });
-      },
-    });
-
     return () => {
-      // TODO needed?
-      i.unset();
-
       socket.removeAllListeners();
       socket.close();
     };
   }, [playerId, roomId]);
 
   return (
-    <DiscardAreaStyle className="discardarea">Discard Area</DiscardAreaStyle>
+    <Droppable droppableId={'discard'} direction='horizontal'>
+      {(provided, snapshot) =>
+        <DiscardAreaStyle {...provided.droppableProps} ref={provided.innerRef}>
+          <TileList tiles={tiles}/>
+          {provided.placeholder}
+        </DiscardAreaStyle>
+      }
+    </Droppable>
   );
 }
 
