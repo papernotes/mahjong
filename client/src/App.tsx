@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter, Switch, Route } from 'react-router-dom';
 import GamePage from './pages/GamePage';
 import HomePage from './pages/HomePage';
-import NewGamePage from './pages/NewGamePage';
+import LobbyPage from './pages/LobbyPage';
 
 
 function App() {
@@ -10,8 +10,8 @@ function App() {
     <BrowserRouter>
       <Switch>
         <Route exact path="/" component={HomePage}/>
-        <Route exact path="/game/:roomId/:playerId" component={GamePage}/>
-        <Route exact path="/new_game" component={NewGamePage}/>
+        <Route exact path="/game/:roomId/lobby" component={LobbyPage}/>
+        <Route exact path="/game/:roomId/game" component={GamePage}/>
       </Switch>
     </BrowserRouter>
   );

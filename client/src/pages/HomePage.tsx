@@ -26,13 +26,15 @@ function HomePage() {
   const maxLength = 14;
   const history = useHistory();
   const classes = useStyles();
-  const [invalidText, setInvalidText] = useState(false);
+  const [username, setUsername] = useState('');
+  const [invalidText, setInvalidText] = useState(true);
 
   useEffect( () => {
     socket.connect();
 
     socket.on('createdNewRoom', (data: any) => {
-      history.push('/game/' + data['roomId'] + '/' + data['playerId']);
+      // history.push('/game/' + data['roomId'] + '/' + data['playerId']);
+      history.push('/game/' + data['roomId'] + '/lobby');
     });
 
     return () => {
@@ -43,7 +45,9 @@ function HomePage() {
 
   // TODO send payload with username
   function newRoom() {
-    socket.emit('newRoom', () => {});
+    if (!invalidText) {
+      socket.emit('newRoom', () => {});
+    }
   }
 
   function validateText(e : any) {
