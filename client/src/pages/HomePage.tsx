@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import io from 'socket.io-client';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import Button from '@material-ui/core/Button';
@@ -8,7 +7,6 @@ import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/core/styles';
 import firebase from '../firebase';
 
-const socket = io('http://localhost:3001/');
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -30,27 +28,6 @@ function HomePage() {
   const [username, setUsername] = useState('');
   const [invalidText, setInvalidText] = useState(true);
 
-  useEffect( () => {
-    socket.connect();
-
-    socket.on('createdNewRoom', (data: any) => {
-      // history.push('/game/' + data['roomId'] + '/' + data['playerId']);
-      history.push('/game/' + data['roomId'] + '/lobby');
-    });
-
-    return () => {
-      socket.removeAllListeners();
-      socket.close();
-    }
-  }, [history]);
-
-  // TODO send payload with username
-  function newRoom() {
-    if (!invalidText) {
-      socket.emit('newRoom', () => {});
-    }
-  }
-
   function validateText(e : any) {
     const text = e.target.value;
     if ((text.length < minLength) || (text.length > maxLength)) {
@@ -60,11 +37,13 @@ function HomePage() {
     }
   }
 
-  async function testFirebase() {
+  async function handleCreateNewRoom() {
     const createNewRoom = firebase.functions().httpsCallable('newRoom');
     try {
-      createNewRoom().then( (result) => {
-        console.log(JSON.stringify(result));
+      createNewRoom().then( (data) => {
+        // TODO: on return, set the user's ID?
+        // Move the user to the lobby page with the room ID
+        history.push('/game/' + data['data']['roomId'] + '/lobby');
       })
     } catch (err) {
       console.log(err);
@@ -87,8 +66,7 @@ function HomePage() {
               <TextField error={invalidText} onChange={e => validateText(e)} id='outlined-basic' label='Username' variant='outlined'/>
             </Grid>
             <Grid item xs={12}>
-              <Button variant='contained' color='primary' onClick={newRoom}>New Room</Button>
-              <Button variant='contained' color='primary' onClick={testFirebase}>Test Firebase</Button>
+              <Button variant='contained' color='primary' onClick={handleCreateNewRoom}>New Room</Button>
             </Grid>
           </Grid>
         </Paper>
