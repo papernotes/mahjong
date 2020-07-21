@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useHistory } from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
@@ -6,6 +6,7 @@ import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/core/styles';
 import firebase from '../firebase';
+import { PlayerContext } from '../context';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -27,6 +28,7 @@ function HomePage() {
   const classes = useStyles();
   const [username, setUsername] = useState('');
   const [invalidText, setInvalidText] = useState(true);
+  const playerId = useContext(PlayerContext)
 
   function validateText(e : any) {
     const text = e.target.value;
@@ -40,9 +42,7 @@ function HomePage() {
   async function handleCreateNewRoom() {
     const createNewRoom = firebase.functions().httpsCallable('newRoom');
     try {
-      createNewRoom().then( (data) => {
-        // TODO: on return, set the user's ID?
-        // Move the user to the lobby page with the room ID
+      createNewRoom({playerId: playerId}).then( (data) => {
         history.push('/game/' + data['data']['roomId'] + '/lobby');
       })
     } catch (err) {

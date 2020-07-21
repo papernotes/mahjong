@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
-import io from 'socket.io-client';
 
 import HandArea from '../components/HandArea';
 import PlayerMoves from '../components/PlayerMoves';
@@ -12,8 +11,6 @@ type MatchParams = {
   playerId: string
 }
 
-const socket = io('http://localhost:3001/');
-
 function GamePage({match} : RouteComponentProps<MatchParams>) {
   const playerId = match.params.playerId;
   const roomId = match.params.roomId;
@@ -23,21 +20,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
 
 
   useEffect( () => {
-    let unmounted = false;
-
-    socket.connect();
-
-    socket.on('drewTile', (tileId: number) => {
-      if (!unmounted) {
-        setTiles(tiles => [...tiles, tileId]);
-      }
-    });
-
-    return () => {
-      unmounted = true;
-      socket.removeAllListeners();
-      socket.close();
-    }
+    console.log("TODO")
   }, []);
 
   // TODO update/refactor to be cleaner
@@ -106,7 +89,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
         <h2>Game Page - {match.params.roomId} </h2>
         <DiscardArea tiles={discardTiles} roomId={roomId} playerId={playerId}/>
         <HandArea tiles={tiles}/>
-        <PlayerMoves socket={socket} roomId={roomId} playerId={playerId}/>
+        <PlayerMoves roomId={roomId} playerId={playerId}/>
       </div>
     </DragDropContext>
   );

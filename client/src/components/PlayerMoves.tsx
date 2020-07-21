@@ -5,35 +5,26 @@ import { useHistory } from 'react-router-dom';
 type PlayerMovesProps = {
   roomId: string;
   playerId: string;
-  socket: any;
 }
 
-function PlayerMoves({ roomId, playerId, socket }: PlayerMovesProps) {
+function PlayerMoves({ roomId, playerId }: PlayerMovesProps) {
   const history = useHistory();
 
   useEffect( () => {
-    socket.connect();
-
-    socket.on('cannotDrawHead', () => console.log('Cannot draw head anymore'));
-    socket.on('cannotDrawTail', () => console.log('Cannot draw tail anymore'));
-
-    return () => {
-      socket.removeAllListeners();
-      socket.close();
-    }
-  }, [socket]);
+    console.log("TODO")
+  }, []);
 
   function drawHead() {
-    socket.emit('drawHead', {'roomId': roomId, 'playerId': playerId});
+    // socket.emit('drawHead', {'roomId': roomId, 'playerId': playerId});
   }
 
   function drawTail() {
-    socket.emit('drawTail', {'roomId': roomId, 'playerId': playerId});
+    // socket.emit('drawTail', {'roomId': roomId, 'playerId': playerId});
   }
 
   function superDrawHead() {
     for (let i = 0; i < 144; i ++) {
-      socket.emit('drawHead', {'roomId': roomId, 'playerId': playerId});
+      // socket.emit('drawHead', {'roomId': roomId, 'playerId': playerId});
     }
   }
 

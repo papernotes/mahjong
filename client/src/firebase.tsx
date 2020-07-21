@@ -17,9 +17,12 @@ let config = {
 };
 
 firebase.initializeApp(config);
+
 if (process.env.REACT_APP_LOCAL_DEV) {
-  firebase.functions().useFunctionsEmulator('http://localhost:5001')
+  firebase.functions().useFunctionsEmulator('http://localhost:5001');
+  firebase.firestore().settings({host:'localhost:8080', ssl: false});
 }
+
 firebase.analytics();
 
 
