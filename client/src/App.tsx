@@ -8,12 +8,12 @@ import { PlayerContext } from './context';
 
 
 function App() {
-  const [playerId, setPlayerId] = useState('');
+  const [userId, setUserId] = useState('');
 
   useEffect( () => {
     firebase.auth().onAuthStateChanged(function(user) {
       if (user) {
-        setPlayerId(user.uid);
+        setUserId(user.uid);
       } else {
         console.log("user logged out");
       }
@@ -25,8 +25,8 @@ function App() {
   }, []);
 
   useEffect( () => {
-    if (playerId) {
-      firebase.firestore().collection('players').doc(playerId)
+    if (userId) {
+      firebase.firestore().collection('users').doc(userId)
         .set({games: 0})
         .then( () => {
           console.log("Written");
@@ -35,11 +35,11 @@ function App() {
           console.error("Error", error);
         })
     }
-  }, [playerId])
+  }, [userId])
 
   return (
     <BrowserRouter>
-      <PlayerContext.Provider value={playerId}>
+      <PlayerContext.Provider value={userId}>
         <Switch>
           <Route exact path="/" component={HomePage}/>
           <Route exact path="/game/:roomId/lobby" component={LobbyPage}/>

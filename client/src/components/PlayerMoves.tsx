@@ -4,10 +4,10 @@ import { useHistory } from 'react-router-dom';
 // TODO remove socket in favor of a socket hook
 type PlayerMovesProps = {
   roomId: string;
-  playerId: string;
+  userId: string;
 }
 
-function PlayerMoves({ roomId, playerId }: PlayerMovesProps) {
+function PlayerMoves({ roomId, userId }: PlayerMovesProps) {
   const history = useHistory();
 
   useEffect( () => {
@@ -15,16 +15,16 @@ function PlayerMoves({ roomId, playerId }: PlayerMovesProps) {
   }, []);
 
   function drawHead() {
-    // socket.emit('drawHead', {'roomId': roomId, 'playerId': playerId});
+    // socket.emit('drawHead', {'roomId': roomId, 'userId': userId});
   }
 
   function drawTail() {
-    // socket.emit('drawTail', {'roomId': roomId, 'playerId': playerId});
+    // socket.emit('drawTail', {'roomId': roomId, 'userId': userId});
   }
 
   function superDrawHead() {
     for (let i = 0; i < 144; i ++) {
-      // socket.emit('drawHead', {'roomId': roomId, 'playerId': playerId});
+      // socket.emit('drawHead', {'roomId': roomId, 'userId': userId});
     }
   }
 

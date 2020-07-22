@@ -28,7 +28,7 @@ function HomePage() {
   const classes = useStyles();
   const [username, setUsername] = useState('');
   const [invalidText, setInvalidText] = useState(true);
-  const playerId = useContext(PlayerContext)
+  const userId = useContext(PlayerContext)
 
   function validateText(e : any) {
     const text = e.target.value;
@@ -42,7 +42,7 @@ function HomePage() {
   async function handleCreateNewRoom() {
     const createNewRoom = firebase.functions().httpsCallable('newRoom');
     try {
-      createNewRoom({playerId: playerId}).then( (data) => {
+      createNewRoom({userId: userId}).then( (data) => {
         history.push('/game/' + data['data']['roomId'] + '/lobby');
       })
     } catch (err) {

@@ -8,11 +8,11 @@ import { DragDropContext } from 'react-beautiful-dnd';
 
 type MatchParams = {
   roomId: string,
-  playerId: string
+  userId: string
 }
 
 function GamePage({match} : RouteComponentProps<MatchParams>) {
-  const playerId = match.params.playerId;
+  const userId = match.params.userId;
   const roomId = match.params.roomId;
 
   const [tiles, setTiles] = useState<number[]>([]);
@@ -87,9 +87,9 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
       onDragEnd={onDragEnd}>
       <div>
         <h2>Game Page - {match.params.roomId} </h2>
-        <DiscardArea tiles={discardTiles} roomId={roomId} playerId={playerId}/>
+        <DiscardArea tiles={discardTiles} roomId={roomId} userId={userId}/>
         <HandArea tiles={tiles}/>
-        <PlayerMoves roomId={roomId} playerId={playerId}/>
+        <PlayerMoves roomId={roomId} userId={userId}/>
       </div>
     </DragDropContext>
   );

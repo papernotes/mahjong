@@ -7,9 +7,9 @@ const db = admin.firestore();
 const numTiles = 144;
 const newRoomValues = {
   'numGames': 0,
-  'numPlayers': 0,
-  'playerOrder': [],
-  'playerIndex': 0,
+  'numUsers': 0,
+  'userOrder': [],
+  'userIndex': 0,
   'headIndex': 0,
   'tailIndex': 0,
   'mapping': shuffleTiles()
@@ -31,7 +31,7 @@ function shuffleTiles() : number[] {
 }
 
 export const newRoom = functions.https.onCall( async (data, context) => {
-  const playerId = data['playerId'];
+  const userId = data['userId'];
   const roomRef = db.collection('rooms').doc();
 
   const roomId = await roomRef.set(newRoomValues)
@@ -40,17 +40,17 @@ export const newRoom = functions.https.onCall( async (data, context) => {
     });
 
   await roomRef.update({
-    playerOrder: admin.firestore.FieldValue.arrayUnion(playerId)
+    userOrder: admin.firestore.FieldValue.arrayUnion(userId)
   })
 
   return await db
     .collection('rooms')
     .doc(roomId)
-    .collection('players')
-    .doc(playerId)
+    .collection('users')
+    .doc(userId)
     .set(newPlayerValues)
     .then( (res) => {
-      return {roomId: roomId, playerId: playerId}
+      return {roomId: roomId, userId: userId}
     });
 });
 

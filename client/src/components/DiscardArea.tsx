@@ -5,7 +5,7 @@ import TileList from '../components/TileList';
 
 type DiscardAreaProps = {
   roomId: string;
-  playerId: string;
+  userId: string;
   tiles: number[];
 };
 
@@ -20,11 +20,11 @@ const DiscardAreaStyle = styled.div`
   height: 200px;
 `;
 
-function DiscardArea({ roomId, playerId, tiles }: DiscardAreaProps) {
+function DiscardArea({ roomId, userId, tiles }: DiscardAreaProps) {
   useEffect(() => {
     console.log("TODO")
 
-  }, [playerId, roomId]);
+  }, [userId, roomId]);
 
   return (
     <Droppable droppableId={'discard'} direction='horizontal'>

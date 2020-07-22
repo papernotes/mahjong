@@ -3,7 +3,6 @@ import * as firebase from 'firebase/app';
 import 'firebase/firestore';
 import 'firebase/functions';
 import 'firebase/auth';
-import 'firebase/analytics';
 
 let config = {
   apiKey: process.env.REACT_APP_API_KEY,
@@ -22,8 +21,6 @@ if (process.env.REACT_APP_LOCAL_DEV) {
   firebase.functions().useFunctionsEmulator('http://localhost:5001');
   firebase.firestore().settings({host:'localhost:8080', ssl: false});
 }
-
-firebase.analytics();
 
 
 export default firebase;
