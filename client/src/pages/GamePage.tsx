@@ -1,27 +1,30 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 
 import HandArea from '../components/HandArea';
 import PlayerMoves from '../components/PlayerMoves';
 import DiscardArea from '../components/DiscardArea';
 import { DragDropContext } from 'react-beautiful-dnd';
+import { PlayerContext } from '../context';
 
 type MatchParams = {
-  roomId: string,
-  userId: string
+  roomId: string
 }
 
 function GamePage({match} : RouteComponentProps<MatchParams>) {
-  const userId = match.params.userId;
+  const userId = useContext(PlayerContext);
   const roomId = match.params.roomId;
 
   const [tiles, setTiles] = useState<number[]>([]);
   const [discardTiles, setDiscardedTiles] = useState<number[]>([]);
 
-
   useEffect( () => {
-    console.log("TODO")
-  }, []);
+
+  }, [userId]);
+
+  // TODO subscribe to room/user's hand for the tiles
+
+  // TODO remove useContext
 
   // TODO update/refactor to be cleaner
   // map sources/destinations droppableIds to
@@ -89,7 +92,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
         <h2>Game Page - {match.params.roomId} </h2>
         <DiscardArea tiles={discardTiles} roomId={roomId} userId={userId}/>
         <HandArea tiles={tiles}/>
-        <PlayerMoves roomId={roomId} userId={userId}/>
+        <PlayerMoves roomId={roomId}/>
       </div>
     </DragDropContext>
   );

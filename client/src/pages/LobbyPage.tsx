@@ -1,8 +1,11 @@
-import React from 'react';
+import React, { useEffect, useContext } from 'react';
+import { withRouter } from 'react-router';
 
 function LobbyPage() {
   return (
-    <div>Lobby Page</div>
+    <div>
+      <div>Lobby Page</div>
+    </div>
   );
 }
 

@@ -5,21 +5,17 @@ admin.initializeApp();
 const db = admin.firestore();
 
 const numTiles = 144;
-const newRoomValues = {
+const baseRoomValues = {
   'numGames': 0,
   'numUsers': 0,
   'userOrder': [],
-  'userIndex': 0,
-  'headIndex': 0,
-  'tailIndex': 0,
-  'mapping': shuffleTiles()
+  'userIndex': 0
 }
 const newPlayerValues = {
   'hand': [],
   'revealedTiles': [],
   'discardedTiles': []
 }
-
 
 function shuffleTiles() : number[] {
   const tiles = Array.apply(null, Array(numTiles)).map( (x, i) => {return i});
@@ -30,11 +26,17 @@ function shuffleTiles() : number[] {
   return tiles;
 }
 
+function newRoomValues() : object {
+  let roomValues = JSON.parse(JSON.stringify(baseRoomValues));
+  roomValues['mapping'] = shuffleTiles();
+  return roomValues;
+}
+
 export const newRoom = functions.https.onCall( async (data, context) => {
   const userId = data['userId'];
   const roomRef = db.collection('rooms').doc();
 
-  const roomId = await roomRef.set(newRoomValues)
+  const roomId = await roomRef.set(newRoomValues())
     .then( (res) => {
       return roomRef.id;
     });
@@ -54,26 +56,32 @@ export const newRoom = functions.https.onCall( async (data, context) => {
     });
 });
 
-// TODO add player to room
-export const addPlayer = functions.https.onCall( async (data, context) => {
 
-})
-
-export const drawHead = functions.https.onCall( async(data, context) => {
-
-});
-
-export const drawTail = functions.https.onCall( async(data, context) => {
-
-});
-
-export const deleteRoom = functions.https.onCall( (data, context) => {
+export const drawTile = functions.https.onCall( async(data, context) => {
   const roomId = data.roomId;
-  functions.logger.info("Deleting room - " + roomId);
+  const userId = data.userId;
+  const roomRef = db.doc(`rooms/${roomId}`);
+  const userRef = db.doc(`rooms/${roomId}/users/${userId}`)
 
-});
+  const mapping = await roomRef.get()
+    .then( (res) => {
+      return res.get('mapping')
+    });
 
-export const newGame = functions.https.onCall( (data, context) => {
-  const roomId = data.roomId;
-  functions.logger.info("Creating new game in - " + roomId);
+  // TODO handle
+  if (mapping.length <= 0) {
+    throw new Error('Cannot draw tiles anymore');
+  }
+  const tileId = mapping[0];
+
+  await userRef.update({
+    hand: admin.firestore.FieldValue.arrayUnion(tileId)
+  });
+
+  return await roomRef.update(
+    'mapping', admin.firestore.FieldValue.arrayRemove(tileId)
+  ).then( () => {
+    functions.logger.info('successfully removed tile');
+    return {tileId: tileId}
+  });
 });

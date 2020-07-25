@@ -1,25 +1,29 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { useHistory } from 'react-router-dom';
+import firebase from '../firebase';
+import { PlayerContext } from '../context';
 
-// TODO remove socket in favor of a socket hook
 type PlayerMovesProps = {
   roomId: string;
-  userId: string;
 }
 
-function PlayerMoves({ roomId, userId }: PlayerMovesProps) {
+function PlayerMoves({ roomId }: PlayerMovesProps) {
   const history = useHistory();
+  const userId = useContext(PlayerContext)
 
   useEffect( () => {
-    console.log("TODO")
+
   }, []);
 
-  function drawHead() {
-    // socket.emit('drawHead', {'roomId': roomId, 'userId': userId});
-  }
-
-  function drawTail() {
-    // socket.emit('drawTail', {'roomId': roomId, 'userId': userId});
+  async function handleDrawTile() {
+    const drawTile = firebase.functions().httpsCallable('drawTile');
+    try {
+      drawTile({userId: userId, roomId: roomId}).then( (data) => {
+        console.log('Drawn tile: ', data['data']['tileId']);
+      })
+    } catch (err) {
+      console.error(err);
+    }
   }
 
   function superDrawHead() {
@@ -34,8 +38,8 @@ function PlayerMoves({ roomId, userId }: PlayerMovesProps) {
   return (
     <div>
       <button onClick={goHome}>Go Home</button>
-      <button onClick={drawHead}>Draw Head</button>
-      <button onClick={drawTail}>Draw Tail</button>
+      <button onClick={handleDrawTile}>Draw Head</button>
+      <button onClick={handleDrawTile}>Draw Tail</button>
       <button onClick={superDrawHead}>Super Draw Head - Draws 144 times</button>
     </div>
   );

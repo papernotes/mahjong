@@ -28,7 +28,7 @@ function HomePage() {
   const classes = useStyles();
   const [username, setUsername] = useState('');
   const [invalidText, setInvalidText] = useState(true);
-  const userId = useContext(PlayerContext)
+  const userId = useContext(PlayerContext);
 
   function validateText(e : any) {
     const text = e.target.value;
