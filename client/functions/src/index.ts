@@ -68,10 +68,13 @@ export const drawTile = functions.https.onCall( async(data, context) => {
       return res.get('mapping')
     });
 
-  // TODO handle
   if (mapping.length <= 0) {
-    throw new Error('Cannot draw tiles anymore');
+    throw new functions.https.HttpsError(
+      'not-found',
+      'No more tiles to draw'
+    )
   }
+
   const tileId = mapping[0];
 
   await userRef.update({

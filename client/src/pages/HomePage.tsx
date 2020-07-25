@@ -6,7 +6,7 @@ import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/core/styles';
 import firebase from '../firebase';
-import { PlayerContext } from '../context';
+import { UserContext } from '../context';
 
 
 const useStyles = makeStyles((theme) => ({
@@ -28,7 +28,7 @@ function HomePage() {
   const classes = useStyles();
   const [username, setUsername] = useState('');
   const [invalidText, setInvalidText] = useState(true);
-  const userId = useContext(PlayerContext);
+  const userId = useContext(UserContext);
 
   function validateText(e : any) {
     const text = e.target.value;

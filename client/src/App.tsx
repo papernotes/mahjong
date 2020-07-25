@@ -4,7 +4,7 @@ import GamePage from './pages/GamePage';
 import HomePage from './pages/HomePage';
 import LobbyPage from './pages/LobbyPage';
 import firebase from './firebase';
-import { PlayerContext } from './context';
+import { UserContext } from './context';
 
 
 function App() {
@@ -39,13 +39,13 @@ function App() {
 
   return (
     <BrowserRouter>
-      <PlayerContext.Provider value={userId}>
+      <UserContext.Provider value={userId}>
         <Switch>
           <Route exact path="/" component={HomePage}/>
           <Route exact path="/game/:roomId/lobby" component={LobbyPage}/>
           <Route exact path="/game/:roomId/game" component={GamePage}/>
         </Switch>
-      </PlayerContext.Provider>
+      </UserContext.Provider>
     </BrowserRouter>
   );
 }

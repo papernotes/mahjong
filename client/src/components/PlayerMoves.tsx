@@ -1,7 +1,7 @@
 import React, { useEffect, useContext } from 'react';
 import { useHistory } from 'react-router-dom';
 import firebase from '../firebase';
-import { PlayerContext } from '../context';
+import { UserContext } from '../context';
 
 type PlayerMovesProps = {
   roomId: string;
@@ -9,7 +9,7 @@ type PlayerMovesProps = {
 
 function PlayerMoves({ roomId }: PlayerMovesProps) {
   const history = useHistory();
-  const userId = useContext(PlayerContext)
+  const userId = useContext(UserContext)
 
   useEffect( () => {
 
@@ -18,11 +18,15 @@ function PlayerMoves({ roomId }: PlayerMovesProps) {
   async function handleDrawTile() {
     const drawTile = firebase.functions().httpsCallable('drawTile');
     try {
-      drawTile({userId: userId, roomId: roomId}).then( (data) => {
-        console.log('Drawn tile: ', data['data']['tileId']);
-      })
+      drawTile({userId: userId, roomId: roomId})
+        .then( (data) => {
+          console.log('Drawn tile: ', data['data']['tileId']);
+        })
+        .catch(e => {
+          console.log("Cannot draw any more tiles");
+        })
     } catch (err) {
-      console.error(err);
+      console.error("error", err);
     }
   }
 

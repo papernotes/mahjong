@@ -5,14 +5,14 @@ import HandArea from '../components/HandArea';
 import PlayerMoves from '../components/PlayerMoves';
 import DiscardArea from '../components/DiscardArea';
 import { DragDropContext } from 'react-beautiful-dnd';
-import { PlayerContext } from '../context';
+import { UserContext } from '../context';
 
 type MatchParams = {
   roomId: string
 }
 
 function GamePage({match} : RouteComponentProps<MatchParams>) {
-  const userId = useContext(PlayerContext);
+  const userId = useContext(UserContext);
   const roomId = match.params.roomId;
 
   const [tiles, setTiles] = useState<number[]>([]);
