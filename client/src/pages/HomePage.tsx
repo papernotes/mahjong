@@ -35,6 +35,7 @@ function HomePage() {
     if ((text.length < minLength) || (text.length > maxLength)) {
       setInvalidText(true);
     } else {
+      setUsername(text);
       setInvalidText(false);
     }
   }
@@ -63,7 +64,7 @@ function HomePage() {
         <Paper elevation={3}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <TextField error={invalidText} onChange={e => validateText(e)} id='outlined-basic' label='Username' variant='outlined'/>
+              <TextField error={invalidText} defaultValue={username} onChange={e => validateText(e)} id='outlined-basic' label='Username' variant='outlined'/>
             </Grid>
             <Grid item xs={12}>
               <Button variant='contained' color='primary' onClick={handleCreateNewRoom}>New Room</Button>

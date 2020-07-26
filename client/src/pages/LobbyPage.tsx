@@ -1,5 +1,4 @@
-import React, { useEffect, useContext } from 'react';
-import { withRouter } from 'react-router';
+import React from 'react';
 
 function LobbyPage() {
   return (
