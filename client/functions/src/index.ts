@@ -45,11 +45,7 @@ export const newRoom = functions.https.onCall( async (data, context) => {
     userOrder: admin.firestore.FieldValue.arrayUnion(userId)
   })
 
-  return await db
-    .collection('rooms')
-    .doc(roomId)
-    .collection('users')
-    .doc(userId)
+  return await db.doc(`rooms/${roomId}/users/${userId}`)
     .set(newPlayerValues)
     .then( (res) => {
       return {roomId: roomId, userId: userId}
@@ -65,6 +61,12 @@ export const drawTile = functions.https.onCall( async(data, context) => {
 
   const mapping = await roomRef.get()
     .then( (res) => {
+      if (!res.exists) {
+        throw new functions.https.HttpsError(
+          'not-found',
+          'Room not found'
+        );
+      }
       return res.get('mapping')
     });
 
@@ -72,14 +74,24 @@ export const drawTile = functions.https.onCall( async(data, context) => {
     throw new functions.https.HttpsError(
       'not-found',
       'No more tiles to draw'
-    )
+    );
   }
 
   const tileId = mapping[0];
 
-  await userRef.update({
-    hand: admin.firestore.FieldValue.arrayUnion(tileId)
-  });
+  await userRef.get()
+    .then( (res) => {
+      if (res.exists) {
+        userRef.update({
+          hand: admin.firestore.FieldValue.arrayUnion(tileId)
+        });
+      } else {
+        throw new functions.https.HttpsError(
+          'not-found',
+          'User not found'
+        );
+      }
+    });
 
   return await roomRef.update(
     'mapping', admin.firestore.FieldValue.arrayRemove(tileId)

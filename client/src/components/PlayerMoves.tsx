@@ -23,7 +23,7 @@ function PlayerMoves({ roomId }: PlayerMovesProps) {
           console.log('Drawn tile: ', data['data']['tileId']);
         })
         .catch(e => {
-          console.log("Cannot draw any more tiles");
+          console.log(e);
         })
     } catch (err) {
       console.error("error", err);
