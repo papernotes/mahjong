@@ -6,25 +6,63 @@ import PlayerMoves from '../components/PlayerMoves';
 import DiscardArea from '../components/DiscardArea';
 import { DragDropContext } from 'react-beautiful-dnd';
 import { UserContext } from '../context';
+import firebase from '../firebase';
 
 type MatchParams = {
   roomId: string
 }
 
 function GamePage({match} : RouteComponentProps<MatchParams>) {
+  // TODO remove useContext
   const userId = useContext(UserContext);
   const roomId = match.params.roomId;
 
   const [tiles, setTiles] = useState<number[]>([]);
   const [discardTiles, setDiscardedTiles] = useState<number[]>([]);
 
-  useEffect( () => {
+  useEffect(() => {
+    let unsubscribe : Function;
+    if (userId && roomId) {
+      const ref = firebase.firestore().collection(`rooms/${roomId}/users`).doc(userId);
+      unsubscribe = ref.onSnapshot(function(doc) {
+          const data = doc.data();
+          if (data) {
+            const hand = data.hand;
+            const dTiles = data.discardedTiles;
 
-  }, [userId]);
+            // set hand tiles
+            if (tiles.length === 0) {
+              setTiles(hand);
+            } else {
+              const newTile = hand.pop();
+              setTiles(prevTiles => [...prevTiles, newTile]);
+            }
 
-  // TODO subscribe to room/user's hand for the tiles
+            // set discard tiles
+            if (discardTiles.length === 0) {
+              setDiscardedTiles(dTiles);
+            } else {
+              const newDiscardedTile = dTiles.pop();
+              setDiscardedTiles(prevTiles => [...prevTiles, newDiscardedTile]);
+            }
+          }
+        });
+    }
+    return () => {
+      unsubscribe && unsubscribe();
+    }
+  }, [userId, roomId]);
 
-  // TODO remove useContext
+  function updateFirestoreHand(newTiles : number[], newDiscTiles : number[]) {
+    const userRef = firebase.firestore().collection(`rooms/${roomId}/users`).doc(userId)
+    return userRef.update({
+      hand: newTiles,
+      discardedTiles: newDiscTiles
+    })
+    .catch(function(error) {
+      throw new Error('Could not update hand');
+    });
+  }
 
   // TODO update/refactor to be cleaner
   // map sources/destinations droppableIds to
@@ -51,10 +89,11 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
       }
 
       newTiles.splice(source.index, 1)
-      newTiles.splice(destination.index, 0, draggableId);
+      newTiles.splice(destination.index, 0, parseInt(draggableId));
 
       if (inHand) {
         setTiles(newTiles);
+        updateFirestoreHand(newTiles, discardTiles)
       } else {
         setDiscardedTiles(newTiles);
       }
@@ -73,12 +112,14 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
       }
 
       primary.splice(source.index, 1);
-      secondary.splice(destination.index, 0, draggableId);
+      secondary.splice(destination.index, 0, parseInt(draggableId));
 
       if (inHand) {
+        updateFirestoreHand(primary, secondary)
         setTiles(primary);
         setDiscardedTiles(secondary);
       } else {
+        updateFirestoreHand(secondary, primary)
         setTiles(secondary);
         setDiscardedTiles(primary);
       }

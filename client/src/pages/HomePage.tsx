@@ -67,7 +67,7 @@ function HomePage() {
               <TextField error={invalidText} defaultValue={username} onChange={e => validateText(e)} id='outlined-basic' label='Username' variant='outlined'/>
             </Grid>
             <Grid item xs={12}>
-              <Button variant='contained' color='primary' onClick={handleCreateNewRoom}>New Room</Button>
+              <Button variant='contained' disabled={invalidText} color='primary' onClick={handleCreateNewRoom}>New Room</Button>
             </Grid>
           </Grid>
         </Paper>

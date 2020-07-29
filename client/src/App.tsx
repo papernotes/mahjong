@@ -25,6 +25,7 @@ function App() {
   }, []);
 
   useEffect( () => {
+    // TODO generate username and pass it here
     if (userId) {
       firebase.firestore().collection('users').doc(userId)
         .set({games: 0})

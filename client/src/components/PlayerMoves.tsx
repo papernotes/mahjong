@@ -30,12 +30,6 @@ function PlayerMoves({ roomId }: PlayerMovesProps) {
     }
   }
 
-  function superDrawHead() {
-    for (let i = 0; i < 144; i ++) {
-      // socket.emit('drawHead', {'roomId': roomId, 'userId': userId});
-    }
-  }
-
   function goHome() {
     history.push('/');
   }
@@ -44,7 +38,6 @@ function PlayerMoves({ roomId }: PlayerMovesProps) {
       <button onClick={goHome}>Go Home</button>
       <button onClick={handleDrawTile}>Draw Head</button>
       <button onClick={handleDrawTile}>Draw Tail</button>
-      <button onClick={superDrawHead}>Super Draw Head - Draws 144 times</button>
     </div>
   );
 }
