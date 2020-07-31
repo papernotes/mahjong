@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
-import io from 'socket.io-client';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/core/styles';
+import firebase from '../firebase';
+import { UserContext } from '../context';
 
-const socket = io('http://localhost:3001/');
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -26,36 +26,57 @@ function HomePage() {
   const maxLength = 14;
   const history = useHistory();
   const classes = useStyles();
+  const userId = useContext(UserContext);
+
   const [username, setUsername] = useState('');
-  const [invalidText, setInvalidText] = useState(true);
+  const [invalidText, setInvalidText] = useState(false);
 
   useEffect( () => {
-    socket.connect();
-
-    socket.on('createdNewRoom', (data: any) => {
-      // history.push('/game/' + data['roomId'] + '/' + data['playerId']);
-      history.push('/game/' + data['roomId'] + '/lobby');
-    });
-
+    let unsubscribe : Function;
+    if (userId) {
+      const ref = firebase.firestore().collection('users').doc(userId);
+      unsubscribe = ref.onSnapshot(doc => {
+        const data = doc.data();
+        if (data) {
+          setUsername(data.username);
+        }
+      })
+    }
     return () => {
-      socket.removeAllListeners();
-      socket.close();
+      unsubscribe && unsubscribe();
     }
-  }, [history]);
-
-  // TODO send payload with username
-  function newRoom() {
-    if (!invalidText) {
-      socket.emit('newRoom', () => {});
-    }
-  }
+  }, [userId])
 
   function validateText(e : any) {
     const text = e.target.value;
+    setUsername(text);
     if ((text.length < minLength) || (text.length > maxLength)) {
       setInvalidText(true);
     } else {
       setInvalidText(false);
+    }
+  }
+
+  async function updateUsername() {
+    firebase.firestore().collection('users').doc(userId)
+      .update({username: username})
+      .catch( (error) => {
+        console.error("Error", error);
+      })
+  }
+
+  async function handleCreateNewRoom() {
+    const createNewRoom = firebase.functions().httpsCallable('newRoom');
+    try {
+      if (invalidText) {
+        return;
+      }
+      updateUsername();
+      createNewRoom({userId: userId}).then( (data) => {
+        history.push('/game/' + data['data']['roomId'] + '/lobby');
+      })
+    } catch (err) {
+      console.log(err);
     }
   }
 
@@ -72,10 +93,24 @@ function HomePage() {
         <Paper elevation={3}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <TextField error={invalidText} onChange={e => validateText(e)} id='outlined-basic' label='Username' variant='outlined'/>
+              <TextField
+                error={invalidText}
+                value={username}
+                onChange={validateText}
+                id='outlined-basic'
+                label='Username'
+                variant='outlined'
+              />
             </Grid>
             <Grid item xs={12}>
-              <Button variant='contained' color='primary' onClick={newRoom}>New Room</Button>
+              <Button
+                variant='contained'
+                disabled={invalidText}
+                color='primary'
+                onClick={handleCreateNewRoom}
+              >
+                New Room
+              </Button>
             </Grid>
           </Grid>
         </Paper>

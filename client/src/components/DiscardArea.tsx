@@ -2,11 +2,10 @@ import React, { useEffect } from "react";
 import { Droppable } from 'react-beautiful-dnd';
 import styled from "styled-components";
 import TileList from '../components/TileList';
-import io from "socket.io-client";
 
 type DiscardAreaProps = {
   roomId: string;
-  playerId: string;
+  userId: string;
   tiles: number[];
 };
 
@@ -21,21 +20,11 @@ const DiscardAreaStyle = styled.div`
   height: 200px;
 `;
 
-const socket = io("http://localhost:3001/");
-
-function DiscardArea({ roomId, playerId, tiles }: DiscardAreaProps) {
+function DiscardArea({ roomId, userId, tiles }: DiscardAreaProps) {
   useEffect(() => {
-    socket.connect();
+    console.log("TODO")
 
-    socket.on("discardedTile", () =>
-      console.log("Successfully discarded tile")
-    );
-
-    return () => {
-      socket.removeAllListeners();
-      socket.close();
-    };
-  }, [playerId, roomId]);
+  }, [userId, roomId]);
 
   return (
     <Droppable droppableId={'discard'} direction='horizontal'>
