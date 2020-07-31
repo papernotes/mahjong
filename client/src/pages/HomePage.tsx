@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { useHistory } from 'react-router-dom';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
@@ -26,23 +26,52 @@ function HomePage() {
   const maxLength = 14;
   const history = useHistory();
   const classes = useStyles();
-  const [username, setUsername] = useState('');
-  const [invalidText, setInvalidText] = useState(true);
   const userId = useContext(UserContext);
+
+  const [username, setUsername] = useState('');
+  const [invalidText, setInvalidText] = useState(false);
+
+  useEffect( () => {
+    let unsubscribe : Function;
+    if (userId) {
+      const ref = firebase.firestore().collection('users').doc(userId);
+      unsubscribe = ref.onSnapshot(doc => {
+        const data = doc.data();
+        if (data) {
+          setUsername(data.username);
+        }
+      })
+    }
+    return () => {
+      unsubscribe && unsubscribe();
+    }
+  }, [userId])
 
   function validateText(e : any) {
     const text = e.target.value;
+    setUsername(text);
     if ((text.length < minLength) || (text.length > maxLength)) {
       setInvalidText(true);
     } else {
-      setUsername(text);
       setInvalidText(false);
     }
+  }
+
+  async function updateUsername() {
+    firebase.firestore().collection('users').doc(userId)
+      .update({username: username})
+      .catch( (error) => {
+        console.error("Error", error);
+      })
   }
 
   async function handleCreateNewRoom() {
     const createNewRoom = firebase.functions().httpsCallable('newRoom');
     try {
+      if (invalidText) {
+        return;
+      }
+      updateUsername();
       createNewRoom({userId: userId}).then( (data) => {
         history.push('/game/' + data['data']['roomId'] + '/lobby');
       })
@@ -64,10 +93,24 @@ function HomePage() {
         <Paper elevation={3}>
           <Grid container spacing={3}>
             <Grid item xs={12}>
-              <TextField error={invalidText} defaultValue={username} onChange={e => validateText(e)} id='outlined-basic' label='Username' variant='outlined'/>
+              <TextField
+                error={invalidText}
+                value={username}
+                onChange={validateText}
+                id='outlined-basic'
+                label='Username'
+                variant='outlined'
+              />
             </Grid>
             <Grid item xs={12}>
-              <Button variant='contained' disabled={invalidText} color='primary' onClick={handleCreateNewRoom}>New Room</Button>
+              <Button
+                variant='contained'
+                disabled={invalidText}
+                color='primary'
+                onClick={handleCreateNewRoom}
+              >
+                New Room
+              </Button>
             </Grid>
           </Grid>
         </Paper>

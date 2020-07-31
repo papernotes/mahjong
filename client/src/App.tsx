@@ -22,21 +22,33 @@ function App() {
     firebase.auth().signInAnonymously().catch(function(err) {
       console.log('error', err)
     })
+
+    // TODO cleanup auth
   }, []);
 
+  // TODO make nicer usernames
+  function generateUsername() {
+    return Math.random().toString(36).substring(7);
+  }
+
   useEffect( () => {
-    // TODO generate username and pass it here
     if (userId) {
-      firebase.firestore().collection('users').doc(userId)
-        .set({games: 0})
-        .then( () => {
-          console.log("Written");
-        })
-        .catch( (error) => {
-          console.error("Error", error);
+      const docRef = firebase.firestore().collection('users').doc(userId)
+      docRef.get()
+        .then((doc) => {
+          if (!doc.exists) {
+            docRef.set({
+              games: 0,
+              username: generateUsername()
+            })
+            .catch((error) => {
+              console.error("Error", error);
+            })
+          }
         })
     }
   }, [userId])
+
 
   return (
     <BrowserRouter>
