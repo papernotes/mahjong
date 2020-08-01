@@ -72,7 +72,7 @@ function HomePage() {
         return;
       }
       updateUsername();
-      createNewRoom({userId: userId}).then( (data) => {
+      createNewRoom({userId: userId, username: username}).then( (data) => {
         history.push('/game/' + data['data']['roomId'] + '/lobby');
       })
     } catch (err) {

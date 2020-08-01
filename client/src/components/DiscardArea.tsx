@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { Droppable } from 'react-beautiful-dnd';
 import styled from "styled-components";
 import TileList from '../components/TileList';
@@ -21,11 +21,6 @@ const DiscardAreaStyle = styled.div`
 `;
 
 function DiscardArea({ roomId, userId, tiles }: DiscardAreaProps) {
-  useEffect(() => {
-    console.log("TODO")
-
-  }, [userId, roomId]);
-
   return (
     <Droppable droppableId={'discard'} direction='horizontal'>
       {(provided, snapshot) =>

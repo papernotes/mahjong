@@ -8,7 +8,8 @@ const numTiles = 144;
 const baseRoomValues = {
   'numGames': 0,
   'numUsers': 0,
-  'userOrder': [],
+  'userIds': [],
+  'usernames': [],
   'userIndex': 0
 }
 const newPlayerValues = {
@@ -26,24 +27,24 @@ function shuffleTiles() : number[] {
   return tiles;
 }
 
-function newRoomValues() : object {
-  let roomValues = JSON.parse(JSON.stringify(baseRoomValues));
-  roomValues['mapping'] = shuffleTiles();
-  return roomValues;
-}
-
 export const newRoom = functions.https.onCall( async (data, context) => {
   const userId = data['userId'];
+  const username = data['username']
   const roomRef = db.collection('rooms').doc();
-
-  const roomId = await roomRef.set(newRoomValues())
+  const roomId = await roomRef.set(baseRoomValues)
     .then( (res) => {
       return roomRef.id;
     });
+  const mappingRef = db.collection('mappings').doc(roomId)
+
 
   await roomRef.update({
-    userOrder: admin.firestore.FieldValue.arrayUnion(userId)
+    userIds: admin.firestore.FieldValue.arrayUnion(userId),
+    usernames: admin.firestore.FieldValue.arrayUnion(username),
+    numUsers: 1
   })
+
+  await mappingRef.set({order: shuffleTiles()})
 
   return await db.doc(`rooms/${roomId}/users/${userId}`)
     .set(newPlayerValues)
@@ -56,28 +57,28 @@ export const newRoom = functions.https.onCall( async (data, context) => {
 export const drawTile = functions.https.onCall( async(data, context) => {
   const roomId = data.roomId;
   const userId = data.userId;
-  const roomRef = db.doc(`rooms/${roomId}`);
+  const mappingRef = db.doc(`mappings/${roomId}`)
   const userRef = db.doc(`rooms/${roomId}/users/${userId}`)
 
-  const mapping = await roomRef.get()
-    .then( (res) => {
+  const order = await mappingRef.get()
+    .then((res) => {
       if (!res.exists) {
         throw new functions.https.HttpsError(
           'not-found',
           'Room not found'
         );
       }
-      return res.get('mapping')
-    });
+      return res.get('order');
+    })
 
-  if (mapping.length <= 0) {
+  if (order.length <= 0) {
     throw new functions.https.HttpsError(
       'not-found',
       'No more tiles to draw'
     );
   }
 
-  const tileId = mapping[0];
+  const tileId = order[0];
 
   await userRef.get()
     .then( (res) => {
@@ -93,8 +94,8 @@ export const drawTile = functions.https.onCall( async(data, context) => {
       }
     });
 
-  return await roomRef.update(
-    'mapping', admin.firestore.FieldValue.arrayRemove(tileId)
+  return await mappingRef.update(
+    'order', admin.firestore.FieldValue.arrayRemove(tileId)
   ).then( () => {
     functions.logger.info('successfully removed tile');
     return {tileId: tileId}

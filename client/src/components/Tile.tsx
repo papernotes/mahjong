@@ -3,7 +3,6 @@ import TileUtils from '../utils/TileUtils';
 import styled from 'styled-components';
 import { Draggable } from 'react-beautiful-dnd';
 
-// TODO posisbly take just width and create height from a ratio
 type TileProps = {
   id: number;
   index: number;
