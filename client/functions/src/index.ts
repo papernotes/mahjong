@@ -29,20 +29,12 @@ function shuffleTiles() : number[] {
 
 export const newRoom = functions.https.onCall( async (data, context) => {
   const userId = data['userId'];
-  const username = data['username']
   const roomRef = db.collection('rooms').doc();
   const roomId = await roomRef.set(baseRoomValues)
     .then( (res) => {
       return roomRef.id;
     });
   const mappingRef = db.collection('mappings').doc(roomId)
-
-
-  await roomRef.update({
-    userIds: admin.firestore.FieldValue.arrayUnion(userId),
-    usernames: admin.firestore.FieldValue.arrayUnion(username),
-    numUsers: 1
-  })
 
   await mappingRef.set({order: shuffleTiles()})
 
@@ -52,7 +44,6 @@ export const newRoom = functions.https.onCall( async (data, context) => {
       return {roomId: roomId, userId: userId}
     });
 });
-
 
 export const drawTile = functions.https.onCall( async(data, context) => {
   const roomId = data.roomId;

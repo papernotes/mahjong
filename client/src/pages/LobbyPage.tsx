@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { useHistory } from 'react-router-dom';
 import firebase from '../firebase';
+import { UserContext } from '../context';
 
 type MatchParams = {
   roomId: string
@@ -9,6 +10,8 @@ type MatchParams = {
 
 function LobbyPage({match} : RouteComponentProps<MatchParams>) {
   const history = useHistory();
+  const userId = useContext(UserContext).userId;
+  const userCreated = useContext(UserContext).userCreated;
   const roomId = match.params.roomId;
   const [usernames, setUsernames] = useState<string[]>([]);
 
@@ -17,22 +20,53 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
     history.push('/game/' + roomId + '/game');
   }
 
+  function updateRoom(name : string) {
+    const ref = firebase.firestore().collection('rooms').doc(roomId);
+    ref.update({
+      userIds: firebase.firestore.FieldValue.arrayUnion(userId),
+      usernames: firebase.firestore.FieldValue.arrayUnion(name)
+    });
+
+    ref.onSnapshot(function(doc) {
+      const data = doc.data();
+      if (data) {
+        setUsernames(data.usernames);
+      }
+    })
+  }
+
   useEffect(() => {
-    if (roomId) {
-      const ref = firebase.firestore().collection('rooms').doc(roomId);
-      ref.onSnapshot(function(doc) {
-        const data = doc.data();
-        if (data) {
-          setUsernames(data.usernames);
-        }
-      })
+    // TODO only allow users to join the room if there are <= 4 people in the room already
+    // TODO nav to roomfull
+    if (roomId && userId) {
+      const userRef = firebase.firestore().doc(`users/${userId}`);
+      userRef.get()
+        .then((doc) => {
+          if (doc.exists) {
+            const data = doc.data();
+            if (data) {
+              updateRoom(data.username);
+            }
+          }
+        })
+        .catch((err) => {
+          console.error('err', err)
+        })
     }
-  }, [roomId])
+  }, [roomId, userId, userCreated])
+
+  function listUsernames() {
+    return(
+      <div>
+        {usernames.map( (username, index) => <li key={index}>{username}</li>)}
+      </div>
+    )
+  }
 
   return (
     <div>
       <div>Lobby Page</div>
-      <div>{usernames}</div>
+      <div>{listUsernames()}</div>
       <button onClick={startGame}>Go to game</button>
     </div>
   );

@@ -26,7 +26,7 @@ function HomePage() {
   const maxLength = 14;
   const history = useHistory();
   const classes = useStyles();
-  const userId = useContext(UserContext);
+  const userId = useContext(UserContext).userId;
 
   const [username, setUsername] = useState('');
   const [invalidText, setInvalidText] = useState(false);

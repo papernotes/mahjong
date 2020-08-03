@@ -3,12 +3,16 @@ import { BrowserRouter, Switch, Route } from 'react-router-dom';
 import GamePage from './pages/GamePage';
 import HomePage from './pages/HomePage';
 import LobbyPage from './pages/LobbyPage';
+import LoadingPage from './pages/LoadingPage';
 import firebase from './firebase';
 import { UserContext } from './context';
 
 
 function App() {
   const [userId, setUserId] = useState('');
+  const [userCreated ,setUserCreated] = useState(false);
+
+  const newUsername = generateUsername();
 
   useEffect( () => {
     firebase.auth().onAuthStateChanged(function(user) {
@@ -24,7 +28,7 @@ function App() {
     })
 
     // TODO cleanup auth
-  }, []);
+  }, [userId]);
 
   // TODO make nicer usernames
   function generateUsername() {
@@ -39,12 +43,13 @@ function App() {
           if (!doc.exists) {
             docRef.set({
               games: 0,
-              username: generateUsername()
-            })
-            .catch((error) => {
-              console.error("Error", error);
-            })
+              username: newUsername
+            });
+            setUserCreated(true);
           }
+        })
+        .catch((err) => {
+          console.error(err);
         })
     }
   }, [userId])
@@ -52,13 +57,18 @@ function App() {
 
   return (
     <BrowserRouter>
-      <UserContext.Provider value={userId}>
-        <Switch>
-          <Route exact path="/" component={HomePage}/>
-          <Route exact path="/game/:roomId/lobby" component={LobbyPage}/>
-          <Route exact path="/game/:roomId/game" component={GamePage}/>
-        </Switch>
-      </UserContext.Provider>
+      {
+        !userId? (
+          <LoadingPage/>
+        ) :
+        (<UserContext.Provider value={{userId: userId, userCreated: userCreated}}>
+          <Switch>
+            <Route exact path="/" component={HomePage}/>
+            <Route exact path="/game/:roomId/lobby" component={LobbyPage}/>
+            <Route exact path="/game/:roomId/game" component={GamePage}/>
+          </Switch>
+        </UserContext.Provider>)
+      }
     </BrowserRouter>
   );
 }

@@ -14,7 +14,7 @@ type MatchParams = {
 
 function GamePage({match} : RouteComponentProps<MatchParams>) {
   // TODO remove useContext
-  const userId = useContext(UserContext);
+  const userId = useContext(UserContext).userId;
   const roomId = match.params.roomId;
 
   const [tiles, setTiles] = useState<number[]>([]);
