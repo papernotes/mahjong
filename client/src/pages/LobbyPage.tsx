@@ -20,16 +20,6 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
     history.push('/game/' + roomId + '/game');
   }
 
-  function addRoomListener() {
-    const ref = firebase.firestore().collection('rooms').doc(roomId);
-    ref.onSnapshot(function(doc) {
-      const data = doc.data();
-      if (data) {
-        setUsernames(data.usernames);
-      }
-    })
-  }
-
   useEffect(() => {
     const ref = firebase.firestore().collection('rooms').doc(roomId);
     const unsubscribe = ref.onSnapshot(function(doc) {
@@ -44,7 +34,7 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
       try {
         joinRoom({userId: userId, roomId: roomId})
           .catch((err) => {
-            if (err.code == 'failed-precondition') {
+            if (err.code === 'failed-precondition') {
               console.error('Cannot join room - lobby full');
             }
             console.log('Still creating user');
