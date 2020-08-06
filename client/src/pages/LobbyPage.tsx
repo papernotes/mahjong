@@ -20,13 +20,8 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
     history.push('/game/' + roomId + '/game');
   }
 
-  function updateRoom(name : string) {
+  function addRoomListener() {
     const ref = firebase.firestore().collection('rooms').doc(roomId);
-    ref.update({
-      userIds: firebase.firestore.FieldValue.arrayUnion(userId),
-      usernames: firebase.firestore.FieldValue.arrayUnion(name)
-    });
-
     ref.onSnapshot(function(doc) {
       const data = doc.data();
       if (data) {
@@ -36,23 +31,34 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
   }
 
   useEffect(() => {
-    // TODO only allow users to join the room if there are <= 4 people in the room already
-    // TODO nav to roomfull
+    const ref = firebase.firestore().collection('rooms').doc(roomId);
+    const unsubscribe = ref.onSnapshot(function(doc) {
+      const data = doc.data();
+      if (data) {
+        setUsernames(data.usernames);
+      }
+    })
+
     if (roomId && userId) {
-      const userRef = firebase.firestore().doc(`users/${userId}`);
-      userRef.get()
-        .then((doc) => {
-          if (doc.exists) {
-            const data = doc.data();
-            if (data) {
-              updateRoom(data.username);
+      const joinRoom = firebase.functions().httpsCallable('joinRoom');
+      try {
+        joinRoom({userId: userId, roomId: roomId})
+          .catch((err) => {
+            if (err.code == 'failed-precondition') {
+              console.error('Cannot join room - lobby full');
             }
-          }
-        })
-        .catch((err) => {
-          console.error('err', err)
-        })
+            console.log('Still creating user');
+          })
+      } catch (err) {
+        console.error('err');
+      }
     }
+
+    // TODO remove user from room
+    return () => {
+      unsubscribe();
+    }
+
   }, [roomId, userId, userCreated])
 
   function listUsernames() {

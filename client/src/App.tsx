@@ -44,8 +44,10 @@ function App() {
             docRef.set({
               games: 0,
               username: newUsername
+            })
+            .then((res) => {
+              setUserCreated(true);
             });
-            setUserCreated(true);
           }
         })
         .catch((err) => {

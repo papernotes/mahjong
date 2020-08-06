@@ -27,6 +27,57 @@ function shuffleTiles() : number[] {
   return tiles;
 }
 
+export const joinRoom = functions.https.onCall( async (data, context) => {
+  const userId = data['userId'];
+  const roomId = data['roomId'];
+  const roomRef = db.doc(`rooms/${roomId}`)
+  const userRef = db.doc(`users/${userId}`)
+
+  const username = await userRef.get()
+    .then((res) => {
+      if (res.exists) {
+        return res.get('username');
+      } else {
+        throw new functions.https.HttpsError(
+          'not-found',
+          'User not found'
+        );
+      }
+    })
+
+  return await roomRef.get()
+    .then((res) => {
+      if (res.exists) {
+        let newCount = res.get('numUsers');
+
+        if (newCount >= 4) {
+          throw new functions.https.HttpsError(
+            'failed-precondition',
+            'Room full'
+          );
+          return {success: false}
+        }
+
+        if (!res.get('userIds').includes(userId)) {
+          newCount += 1
+        }
+
+        roomRef.update({
+          userIds: admin.firestore.FieldValue.arrayUnion(userId),
+          usernames: admin.firestore.FieldValue.arrayUnion(username),
+          numUsers: newCount
+        });
+        return {success: true}
+      } else {
+        throw new functions.https.HttpsError(
+          'not-found',
+          'Room not found'
+        );
+        return {success: false}
+      }
+    })
+})
+
 export const newRoom = functions.https.onCall( async (data, context) => {
   const userId = data['userId'];
   const roomRef = db.collection('rooms').doc();
