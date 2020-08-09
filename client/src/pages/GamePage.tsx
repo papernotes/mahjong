@@ -21,43 +21,57 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
   const [discardTiles, setDiscardedTiles] = useState<number[]>([]);
 
   useEffect(() => {
-    let unsubscribe : Function;
+    let handUnsub : Function;
+    let discardUnsub : Function;
+
     if (userId && roomId) {
-      const ref = firebase.firestore().collection(`rooms/${roomId}/users`).doc(userId);
-      unsubscribe = ref.onSnapshot(function(doc) {
-          const data = doc.data();
-          if (data) {
-            const hand = data.hand;
-            const dTiles = data.discardedTiles;
+      // TODO separate this to components
+      const handRef = firebase.firestore().collection(`rooms/${roomId}/hand`).doc(userId);
+      const discardRef = firebase.firestore().collection(`rooms/${roomId}/discarded`).doc(userId);
 
-            // set hand tiles
-            if (tiles.length === 0) {
-              setTiles(hand);
-            } else {
-              const newTile = hand.pop();
-              setTiles(prevTiles => [...prevTiles, newTile]);
-            }
-
-            // set discard tiles
-            if (discardTiles.length === 0) {
-              setDiscardedTiles(dTiles);
-            } else {
-              const newDiscardedTile = dTiles.pop();
-              setDiscardedTiles(prevTiles => [...prevTiles, newDiscardedTile]);
-            }
+      handUnsub = handRef.onSnapshot(function(doc) {
+        const data = doc.data();
+        if (data) {
+          const hand = data.tiles;
+          if (tiles.length === 0) {
+            setTiles(hand);
+          } else {
+            const newTile = hand.pop();
+            setTiles(prevTiles => [...prevTiles, newTile]);
           }
-        });
+        }
+      })
+
+      discardUnsub = discardRef.onSnapshot(function(doc) {
+        const data = doc.data();
+        if (data) {
+          const hand = data.tiles;
+          if (tiles.length === 0) {
+            setDiscardedTiles(hand);
+          } else {
+            const newTile = hand.pop();
+            setDiscardedTiles(prevTiles => [...prevTiles, newTile]);
+          }
+        }
+      })
     }
+
     return () => {
-      unsubscribe && unsubscribe();
+      handUnsub && handUnsub();
+      discardUnsub && discardUnsub();
     }
   }, [userId, roomId]);
 
   function updateFirestoreHand(newTiles : number[], newDiscTiles : number[]) {
-    const userRef = firebase.firestore().collection(`rooms/${roomId}/users`).doc(userId)
-    return userRef.update({
-      hand: newTiles,
-      discardedTiles: newDiscTiles
+    const handRef = firebase.firestore().collection(`rooms/${roomId}/hand/`).doc(userId)
+    const discardRef = firebase.firestore().collection(`rooms/${roomId}/discarded/`).doc(userId)
+
+    // TODO batch update
+    handRef.update({
+      tiles: newTiles
+    })
+    return discardRef.update({
+      tiles: newDiscTiles
     })
     .catch(function(error) {
       throw new Error('Could not update hand');

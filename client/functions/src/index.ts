@@ -12,11 +12,6 @@ const baseRoomValues = {
   'usernames': [],
   'userIndex': 0
 }
-const newPlayerValues = {
-  'hand': [],
-  'revealedTiles': [],
-  'discardedTiles': []
-}
 
 function shuffleTiles() : number[] {
   const tiles = Array.apply(null, Array(numTiles)).map( (x, i) => {return i});
@@ -27,6 +22,7 @@ function shuffleTiles() : number[] {
   return tiles;
 }
 
+// TODO add user to room's hand fields
 export const joinRoom = functions.https.onCall( async (data, context) => {
   const userId = data['userId'];
   const roomId = data['roomId'];
@@ -62,11 +58,14 @@ export const joinRoom = functions.https.onCall( async (data, context) => {
           newCount += 1
         }
 
+        addUserToRoom(userId, roomId);
+
         roomRef.update({
           userIds: admin.firestore.FieldValue.arrayUnion(userId),
           usernames: admin.firestore.FieldValue.arrayUnion(username),
           numUsers: newCount
         });
+
         return {success: true}
       } else {
         throw new functions.https.HttpsError(
@@ -78,6 +77,21 @@ export const joinRoom = functions.https.onCall( async (data, context) => {
     })
 })
 
+
+async function setRoomTiles(roomId: string) {
+  const mappingRef = db.collection('mappings').doc(roomId)
+  mappingRef.set({order: shuffleTiles()})
+}
+
+async function addUserToRoom(userId: string, roomId: string) {
+  // TODO possibly don't need - remove
+  db.collection(`rooms/${roomId}/users`).doc(userId).set({'exists': true});
+  // TODO batch update
+  db.collection(`rooms/${roomId}/discarded`).doc(userId).set({'tiles': []})
+  db.collection(`rooms/${roomId}/revealed`).doc(userId).set({'tiles': []})
+  db.collection(`rooms/${roomId}/hand`).doc(userId).set({'tiles': []})
+}
+
 export const newRoom = functions.https.onCall( async (data, context) => {
   const userId = data['userId'];
   const roomRef = db.collection('rooms').doc();
@@ -85,13 +99,10 @@ export const newRoom = functions.https.onCall( async (data, context) => {
     .then( (res) => {
       return roomRef.id;
     });
-  const mappingRef = db.collection('mappings').doc(roomId)
 
-  await mappingRef.set({order: shuffleTiles()})
-
-  return await db.doc(`rooms/${roomId}/users/${userId}`)
-    .set(newPlayerValues)
-    .then( (res) => {
+  await setRoomTiles(roomId);
+  return await addUserToRoom(userId, roomId)
+    .then((res) => {
       return {roomId: roomId, userId: userId}
     });
 });
@@ -100,7 +111,7 @@ export const drawTile = functions.https.onCall( async(data, context) => {
   const roomId = data.roomId;
   const userId = data.userId;
   const mappingRef = db.doc(`mappings/${roomId}`)
-  const userRef = db.doc(`rooms/${roomId}/users/${userId}`)
+  const userHandRef = db.doc(`rooms/${roomId}/hand/${userId}`)
 
   const order = await mappingRef.get()
     .then((res) => {
@@ -122,11 +133,11 @@ export const drawTile = functions.https.onCall( async(data, context) => {
 
   const tileId = order[0];
 
-  await userRef.get()
+  await userHandRef.get()
     .then( (res) => {
       if (res.exists) {
-        userRef.update({
-          hand: admin.firestore.FieldValue.arrayUnion(tileId)
+        userHandRef.update({
+          tiles: admin.firestore.FieldValue.arrayUnion(tileId)
         });
       } else {
         throw new functions.https.HttpsError(
@@ -139,7 +150,6 @@ export const drawTile = functions.https.onCall( async(data, context) => {
   return await mappingRef.update(
     'order', admin.firestore.FieldValue.arrayRemove(tileId)
   ).then( () => {
-    functions.logger.info('successfully removed tile');
     return {tileId: tileId}
   });
 });

@@ -9,7 +9,7 @@ type PlayerMovesProps = {
 
 function PlayerMoves({ roomId }: PlayerMovesProps) {
   const history = useHistory();
-  const userId = useContext(UserContext)
+  const userId = useContext(UserContext).userId
 
   useEffect( () => {
 
