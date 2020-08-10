@@ -54,7 +54,7 @@ function App() {
           console.error(err);
         })
     }
-  }, [userId])
+  }, [userId, newUsername])
 
 
   return (

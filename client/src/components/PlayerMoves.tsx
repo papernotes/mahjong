@@ -20,7 +20,7 @@ function PlayerMoves({ roomId }: PlayerMovesProps) {
     try {
       drawTile({userId: userId, roomId: roomId})
         .then( (data) => {
-          console.log('Drawn tile: ', data['data']['tileId']);
+          console.log('Drew tile: ', data['data']['tileId']);
         })
         .catch(e => {
           console.log(e);

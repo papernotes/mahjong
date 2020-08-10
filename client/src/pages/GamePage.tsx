@@ -60,6 +60,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
       handUnsub && handUnsub();
       discardUnsub && discardUnsub();
     }
+  // eslint-disable-next-line
   }, [userId, roomId]);
 
   function updateFirestoreHand(newTiles : number[], newDiscTiles : number[]) {
