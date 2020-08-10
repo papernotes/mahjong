@@ -25,7 +25,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     let discardUnsub : Function;
 
     if (userId && roomId) {
-      // TODO separate this to components
+      // TODO batch
       const handRef = firebase.firestore().collection(`rooms/${roomId}/hand`).doc(userId);
       const discardRef = firebase.firestore().collection(`rooms/${roomId}/discarded`).doc(userId);
 

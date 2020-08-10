@@ -84,12 +84,19 @@ async function setRoomTiles(roomId: string) {
 }
 
 async function addUserToRoom(userId: string, roomId: string) {
-  // TODO possibly don't need - remove
-  db.collection(`rooms/${roomId}/users`).doc(userId).set({'exists': true});
-  // TODO batch update
-  db.collection(`rooms/${roomId}/discarded`).doc(userId).set({'tiles': []})
-  db.collection(`rooms/${roomId}/revealed`).doc(userId).set({'tiles': []})
-  db.collection(`rooms/${roomId}/hand`).doc(userId).set({'tiles': []})
+  const batch = db.batch();
+
+  const userRef = db.collection(`rooms/${roomId}/users`).doc(userId);
+  const discardRef = db.collection(`rooms/${roomId}/discarded`).doc(userId);
+  const revealedRef = db.collection(`rooms/${roomId}/revealed`).doc(userId);
+  const handRef = db.collection(`rooms/${roomId}/hand`).doc(userId);
+
+  batch.set(userRef, {'exists': true});
+  batch.set(discardRef, {'tiles': []});
+  batch.set(revealedRef, {'tiles': []});
+  batch.set(handRef, {'tiles': []});
+
+  batch.commit();
 }
 
 export const newRoom = functions.https.onCall( async (data, context) => {
