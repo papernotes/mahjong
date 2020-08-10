@@ -29,54 +29,61 @@ export const joinRoom = functions.https.onCall( async (data, context) => {
   const roomRef = db.doc(`rooms/${roomId}`)
   const userRef = db.doc(`users/${userId}`)
 
-  const username = await userRef.get()
-    .then((res) => {
-      if (res.exists) {
-        return res.get('username');
-      } else {
+  try {
+    return await db.runTransaction(async t => {
+      const userDoc = await t.get(userRef);
+      const roomDoc = await t.get(roomRef);
+
+      const userData = userDoc.data();
+      const roomData = roomDoc.data();
+
+      if (!userDoc || !userData) {
         throw new functions.https.HttpsError(
           'not-found',
           'User not found'
         );
       }
-    })
-
-  return await roomRef.get()
-    .then((res) => {
-      if (res.exists) {
-        let newCount = res.get('numUsers');
-
-        if (newCount >= 4) {
-          throw new functions.https.HttpsError(
-            'failed-precondition',
-            'Room full'
-          );
-          return {success: false}
-        }
-
-        if (!res.get('userIds').includes(userId)) {
-          newCount += 1
-        }
-
-        addUserToRoom(userId, roomId);
-
-        roomRef.update({
-          userIds: admin.firestore.FieldValue.arrayUnion(userId),
-          usernames: admin.firestore.FieldValue.arrayUnion(username),
-          numUsers: newCount
-        });
-
-        return {success: true}
-      } else {
+      if (!roomDoc || !roomData) {
         throw new functions.https.HttpsError(
           'not-found',
           'Room not found'
         );
+      }
+
+      const username = userData.username;
+      const userIds = roomData.userIds;
+      let newCount = roomData.numUsers;
+
+      if (newCount >= 4) {
+        throw new functions.https.HttpsError(
+          'failed-precondition',
+          'Room full'
+        );
         return {success: false}
       }
-    })
-})
 
+      if (userIds.includes(userId)) {
+        newCount += 1
+      }
+
+      await addUserToRoom(userId, roomId);
+      await t.update(roomRef, {
+        userIds: admin.firestore.FieldValue.arrayUnion(userId),
+        usernames: admin.firestore.FieldValue.arrayUnion(username),
+        numUsers: newCount
+      });
+      return { success: true };
+    });
+  } catch (e) {
+    functions.logger.error(e);
+    return { success: false };
+  }
+
+  throw new functions.https.HttpsError(
+    'failed-precondition',
+    'Could not join room'
+  );
+});
 
 async function setRoomTiles(roomId: string) {
   const mappingRef = db.collection('mappings').doc(roomId)
@@ -120,43 +127,39 @@ export const drawTile = functions.https.onCall( async(data, context) => {
   const mappingRef = db.doc(`mappings/${roomId}`)
   const userHandRef = db.doc(`rooms/${roomId}/hand/${userId}`)
 
-  const order = await mappingRef.get()
-    .then((res) => {
-      if (!res.exists) {
+  try {
+    return await db.runTransaction(async t => {
+      const doc = await t.get(mappingRef);
+      const data = doc.data();
+      if (!doc || !data) {
         throw new functions.https.HttpsError(
           'not-found',
           'Room not found'
         );
       }
-      return res.get('order');
-    })
-
-  if (order.length <= 0) {
-    throw new functions.https.HttpsError(
-      'not-found',
-      'No more tiles to draw'
-    );
-  }
-
-  const tileId = order[0];
-
-  await userHandRef.get()
-    .then( (res) => {
-      if (res.exists) {
-        userHandRef.update({
-          tiles: admin.firestore.FieldValue.arrayUnion(tileId)
-        });
-      } else {
+      const order = data.order;
+      if (order.length <= 0) {
         throw new functions.https.HttpsError(
           'not-found',
-          'User not found'
+          'No more tiles to draw'
         );
       }
-    });
+      const tileId = order[0];
+      await t.update(userHandRef, {
+        tiles: admin.firestore.FieldValue.arrayUnion(tileId)
+      });
+      await t.update(mappingRef, {
+        order: admin.firestore.FieldValue.arrayRemove(tileId)
+      });
 
-  return await mappingRef.update(
-    'order', admin.firestore.FieldValue.arrayRemove(tileId)
-  ).then( () => {
-    return {tileId: tileId}
-  });
+      return { tileId: tileId };
+    })
+  } catch (e) {
+    functions.logger.error(e);
+  }
+
+  throw new functions.https.HttpsError(
+    'not-found',
+    'Could not draw tile'
+  );
 });
