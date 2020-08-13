@@ -22,14 +22,17 @@ const DiscardAreaStyle = styled.div`
 
 function DiscardArea({ roomId, userId, tiles }: DiscardAreaProps) {
   return (
-    <Droppable droppableId={'discard'} direction='horizontal'>
-      {(provided, snapshot) =>
-        <DiscardAreaStyle {...provided.droppableProps} ref={provided.innerRef}>
-          <TileList tiles={tiles}/>
-          {provided.placeholder}
-        </DiscardAreaStyle>
-      }
-    </Droppable>
+    <div>
+      <p>{userId}</p>
+      <Droppable droppableId={'discarded/' + userId} direction='horizontal'>
+        {(provided, snapshot) =>
+          <DiscardAreaStyle {...provided.droppableProps} ref={provided.innerRef}>
+            <TileList tiles={tiles}/>
+            {provided.placeholder}
+          </DiscardAreaStyle>
+        }
+      </Droppable>
+    </div>
   );
 }
 
