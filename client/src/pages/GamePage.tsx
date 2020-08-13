@@ -17,7 +17,6 @@ type DiscardMapping = {
 }
 
 function GamePage({match} : RouteComponentProps<MatchParams>) {
-  // TODO remove useContext
   const userId = useContext(UserContext).userId;
   const roomId = match.params.roomId;
 
@@ -25,6 +24,13 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
   const [uids, setUids] = useState<string[]>([]);
   const [discardMap, setDiscardMap] = useState<DiscardMapping>({});
   const [createdMap, setCreatedMap] = useState<boolean>(false);
+
+  function updateDiscardMap(uid : string, newTiles : number[]) {
+    setDiscardMap(prevMap => ({
+      ...prevMap,
+      [uid]: newTiles
+    }));
+  }
 
   function setDiscardListeners(uids : string[]) {
     const unsubs : Function[] = [];
@@ -38,17 +44,11 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
 
           if (discardMap[uid]) {
             if (discardMap[uid].length === 0) {
-              setDiscardMap(prevMap => ({
-                ...prevMap,
-                [uid]: hand
-              }));
+              updateDiscardMap(uid, hand);
             } else {
               const newTile = hand.pop();
               const newHand = discardMap[uid].concat(newTile);
-              setDiscardMap(prevMap => ({
-                ...prevMap,
-                [uid]: newHand
-              }));
+              updateDiscardMap(uid, newHand);
             }
           }
         }
@@ -64,6 +64,32 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
       newDiscardMap[uid] = [];
     });
     return newDiscardMap;
+  }
+
+  function spliceUpdate(primary : number[], secondary : number[], sourceIndex : number,
+                        destIndex : number, draggableId : string) {
+      primary.splice(sourceIndex, 1);
+      secondary.splice(destIndex, 0, parseInt(draggableId));
+  }
+
+  // TODO make transaction
+  // TODO, if one user is holding it, another moves it, user holding might have out of date local data
+  // Verify that the move is possible? Callable function?
+  function updateFirestore(newTiles : number[], category : string, userId : string) {
+    const handRef = firebase.firestore().collection(`rooms/${roomId}/${category}/`).doc(userId)
+    return handRef.update({
+      tiles: newTiles
+    })
+    .catch(function(error) {
+      throw new Error('Could not update hand');
+    })
+  }
+
+  function discardHandDragUpdate(primary : number[], secondary: number[], destUserId : string) {
+    updateFirestore(primary, 'hand', userId);
+    updateFirestore(secondary, 'discarded', destUserId);
+    setTiles(primary);
+    updateDiscardMap(destUserId, secondary);
   }
 
   useEffect(() => {
@@ -114,16 +140,6 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
   // eslint-disable-next-line
   }, [createdMap])
 
-  function updateFirestore(newTiles : number[], category : string, userId : string) {
-    const handRef = firebase.firestore().collection(`rooms/${roomId}/${category}/`).doc(userId)
-    return handRef.update({
-      tiles: newTiles
-    })
-    .catch(function(error) {
-      throw new Error('Could not update hand');
-    })
-  }
-
   // TODO refactor/cleanup split IDs
   function onDragEnd(result: any) {
     const { destination, source, draggableId } = result;
@@ -142,23 +158,19 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
       let category = start.split('/')[0];
       let sameHandUserId = start.split('/')[1];
 
-      if (start.includes("hand")) {
+      if (start.includes("hand/")) {
         newTiles = Array.from(tiles);
       } else {
         inHand = false;
         newTiles = Array.from(discardMap[sameHandUserId]);
       }
 
-      newTiles.splice(source.index, 1)
-      newTiles.splice(destination.index, 0, parseInt(draggableId));
+      spliceUpdate(newTiles, newTiles, source.index, destination.index, draggableId);
 
       if (inHand) {
         setTiles(newTiles);
       } else {
-        setDiscardMap(prevMap => ({
-          ...prevMap,
-          [sameHandUserId]: newTiles
-        }));
+        updateDiscardMap(sameHandUserId, newTiles);
       }
       updateFirestore(newTiles, category, sameHandUserId);
     }
@@ -167,43 +179,28 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
       let primary : number[];
       let secondary : number[];
 
-      // Current user hand -> some discard pile
-      if (start.includes("hand")) {
+      // Current user hand -> some discard pile (Start: Hand, Dest: Discard)
+      if (start.includes("hand/")) {
+        const destUserId = destination.droppableId.split('/')[1]
         primary = Array.from(tiles);
-        secondary = Array.from(discardMap[destination.droppableId.split('/')[1]]);
+        secondary = Array.from(discardMap[destUserId]);
 
-        primary.splice(source.index, 1);
-        secondary.splice(destination.index, 0, parseInt(draggableId));
-
-        updateFirestore(primary, 'hand', userId);
-        updateFirestore(secondary, 'discarded', destination.droppableId.split('/')[1]);
-
-        setTiles(primary);
-        setDiscardMap(prevMap => ({
-          ...prevMap,
-          [destination.droppableId.split('/')[1]]: secondary
-        }));
+        spliceUpdate(primary, secondary, source.index, destination.index, draggableId);
+        discardHandDragUpdate(primary, secondary, destUserId);
       }
-      // TODO discard to discard
-      // Some discard pile to user hand
+      // TODO (Start: Discard, Dest: Discard)
+      // Some discard pile to user hand (Start: Discard, Dest: Hand)
       else {
-        primary = Array.from(discardMap[source.droppableId.split('/')[1]]);
+        const sourceUserId = source.droppableId.split('/')[1]
+        primary = Array.from(discardMap[sourceUserId]);
         secondary = Array.from(tiles);
 
-        primary.splice(source.index, 1);
-        secondary.splice(destination.index, 0, parseInt(draggableId));
-
-        updateFirestore(primary, 'discarded', source.droppableId.split('/')[1]);
-        updateFirestore(secondary, 'hand', userId);
-
-        setTiles(secondary);
-        setDiscardMap(prevMap => ({
-          ...prevMap,
-          [source.droppableId.split('/')[1]]: primary
-        }));
+        spliceUpdate(primary, secondary, source.index, destination.index, draggableId);
+        discardHandDragUpdate(secondary, primary, sourceUserId);
       }
     }
   }
+
 
   return (
     <DragDropContext
