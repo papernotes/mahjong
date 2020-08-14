@@ -28,89 +28,75 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
   const [revealedMap, setRevealedMap] = useState<SharedTileMapping>({});
   const [createdMap, setCreatedMap] = useState<boolean>(false);
 
-  // TODO refactor the 2 below
-  function updateDiscardMap(uid : string, newTiles : number[]) {
-    setDiscardMap(prevMap => ({
-      ...prevMap,
-      [uid]: newTiles
-    }));
+  function updateSharedTileMap(uid : string, newTiles : number[], category : string) {
+    if (category === 'discarded') {
+      setDiscardMap(prevMap => ({
+        ...prevMap,
+        [uid]: newTiles
+      }));
+    } else {
+      setRevealedMap(prevMap => ({
+        ...prevMap,
+        [uid]: newTiles
+      }))
+    }
   }
 
-  function updateRevealedMap(uid : string, newTiles : number[]) {
-    setRevealedMap(prevMap => ({
-      ...prevMap,
-      [uid]: newTiles
-    }))
+  function createSharedTileListener(uid : string, sharedMap : SharedTileMapping, category : string) {
+    const ref = firebase.firestore().collection(`rooms/${roomId}/${category}`).doc(uid);
+    const sharedUnsub = ref.onSnapshot((doc) => {
+      const data = doc.data();
+      if (data) {
+        const hand = data.tiles;
+
+        if (sharedMap[uid]) {
+          if (sharedMap[uid].length === 0) {
+            updateSharedTileMap(uid, hand, category);
+          } else {
+            const newTile = hand.pop();
+            const newHand = sharedMap[uid].concat(newTile);
+            updateSharedTileMap(uid, newHand, category);
+          }
+        }
+      }
+    });
+
+    return sharedUnsub;
   }
 
-  // TODO refactor
   function setSharedTileAreaListeners(uids : string[]) {
     const unsubs : Function[] = [];
 
     uids.forEach(uid => {
-      const discardRef = firebase.firestore().collection(`rooms/${roomId}/discarded`).doc(uid);
-      const revealedRef = firebase.firestore().collection(`rooms/${roomId}/revealed`).doc(uid);
-
-      const discardUnsub = discardRef.onSnapshot((doc) => {
-        const data = doc.data();
-        if (data) {
-          const hand = data.tiles;
-
-          if (discardMap[uid]) {
-            if (discardMap[uid].length === 0) {
-              updateDiscardMap(uid, hand);
-            } else {
-              const newTile = hand.pop();
-              const newHand = discardMap[uid].concat(newTile);
-              updateDiscardMap(uid, newHand);
-            }
-          }
-        }
-      });
-
-      const revealedUnsub = revealedRef.onSnapshot((doc) => {
-        const data = doc.data();
-        if (data) {
-          const hand = data.tiles;
-          if (revealedMap[uid]) {
-            if (revealedMap[uid].length === 0) {
-              updateRevealedMap(uid, hand);
-            } else {
-              const newTile = hand.pop();
-              const newHand = revealedMap[uid].concat(newTile);
-              updateRevealedMap(uid, newHand);
-            }
-          }
-        }
-      });
-
-      unsubs.push(discardUnsub);
-      unsubs.push(revealedUnsub);
+      unsubs.push(createSharedTileListener(uid, discardMap, 'discarded'));
+      unsubs.push(createSharedTileListener(uid, discardMap, 'revealed'));
     });
     return unsubs;
   }
 
-  // TODO refactor
-  function createDiscardMap(uids : number[]) {
-    const newDiscardMap : SharedTileMapping = {};
+  function createSharedTileMap(uids : number[]) {
+    const newMap : SharedTileMapping = {};
     uids.forEach(uid => {
-      newDiscardMap[uid] = [];
-    });
-    return newDiscardMap;
-  }
-
-  function createRevealedMap(uids : number[]) {
-    const newRevealedMap : SharedTileMapping = {};
-    uids.forEach(uid => {
-      newRevealedMap[uid] = [];
-    });
-    return newRevealedMap;
+      newMap[uid] = [];
+    })
+    return newMap;
   }
 
   function spliceUpdate(primary : number[], secondary : number[], sourceIndex : number,
                         destIndex : number, draggableId : string) {
       primary.splice(sourceIndex, 1);
       secondary.splice(destIndex, 0, parseInt(draggableId));
+  }
+
+  function newArrayFromSharedTileMap(category : string, uid : string) {
+    switch (category) {
+      case 'discarded':
+        return Array.from(discardMap[uid]);
+      case 'revealed':
+        return Array.from(revealedMap[uid]);
+      default:
+        return []
+    }
   }
 
   // TODO make transaction
@@ -127,20 +113,12 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     })
   }
 
-  // TODO refactor
-  // Primary is what we want the hand to be
-  function discardHandDragUpdate(primary : number[], secondary: number[], destUserId : string) {
+  // Update Hand <-> (Discard/Revealed)
+  function sharedWithHandDragUpdate(primary : number[], secondary: number[], destUserId : string, category : string) {
     updateFirestore(primary, 'hand', userId);
-    updateFirestore(secondary, 'discarded', destUserId);
+    updateFirestore(secondary, category, destUserId);
     setTiles(primary);
-    updateDiscardMap(destUserId, secondary);
-  }
-
-  function revealedHandDragUpdate(primary : number[], secondary: number[], destUserId : string) {
-    updateFirestore(primary, 'hand', userId);
-    updateFirestore(secondary, 'revealed', destUserId);
-    setTiles(primary);
-    updateRevealedMap(destUserId, secondary);
+    updateSharedTileMap(destUserId, secondary, category);
   }
 
   useEffect(() => {
@@ -154,8 +132,8 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
           if (data) {
             const uids = data.userIds;
             setUids(uids);
-            setDiscardMap(createDiscardMap(uids));
-            setRevealedMap(createRevealedMap(uids));
+            setDiscardMap(createSharedTileMap(uids));
+            setRevealedMap(createSharedTileMap(uids));
             setCreatedMap(true);
           }
         });
@@ -192,7 +170,6 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
   // eslint-disable-next-line
   }, [createdMap])
 
-  // TODO refactor/cleanup split IDs
   function onDragEnd(result: any) {
     const { destination, source, draggableId } = result;
     if (!destination) { return }
@@ -201,96 +178,64 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
 
     const start = source.droppableId;
     const finish = destination.droppableId;
+
     const startCategory = start.split('/')[0];
     const endCategory = finish.split('/')[0];
 
     // Reordering within the same area
     if (start === finish) {
       let newTiles : number[];
-      let inHand = false;
-
-      // hand, revealed, discarded
-      let sameHandUserId = start.split('/')[1];
+      let inHand = startCategory === 'hand';
+      let startUserId = start.split('/')[1];
 
       // Do not allow users reorder if it's not their own revealed area
-      if (startCategory === 'revealed' && sameHandUserId !== userId) { return }
+      if (startCategory === 'revealed' && startUserId !== userId) return;
 
-      switch(startCategory) {
-        case 'hand':
-          newTiles = Array.from(tiles);
-          inHand = true;
-          break;
-        case 'discarded':
-          newTiles = Array.from(discardMap[sameHandUserId]);
-          break;
-        default:
-          newTiles = Array.from(revealedMap[sameHandUserId]);
+      if (inHand) {
+        newTiles = Array.from(tiles);
+      } else {
+        newTiles = newArrayFromSharedTileMap(startCategory, startUserId);
       }
 
       spliceUpdate(newTiles, newTiles, source.index, destination.index, draggableId);
 
       if (inHand) {
         setTiles(newTiles);
-      } else if (startCategory === 'discarded') {
-        updateDiscardMap(sameHandUserId, newTiles);
       } else {
-        updateRevealedMap(sameHandUserId, newTiles);
+        updateSharedTileMap(startUserId, newTiles, startCategory);
       }
 
-      updateFirestore(newTiles, startCategory, sameHandUserId);
+      updateFirestore(newTiles, startCategory, startUserId);
     }
+    // Dragging from one area to another
     else {
       let primary : number[];
       let secondary : number[];
 
-      // Hand -> Discard, Hand -> Revealed
+      // Hand <-> Discard, Hand <-> Revealed
       if (startCategory === 'hand' || endCategory === 'hand') {
         const destUserId = destination.droppableId.split('/')[1]
 
+        // Hand -> Discard, Hand -> Revealed
         if (startCategory === 'hand') {
-          primary = Array.from(tiles);
+          if (endCategory === 'revealed' && destUserId !== userId) return;
 
-          if (endCategory === 'discarded') {
-            secondary = Array.from(discardMap[destUserId]);
-          } else {
-            if (destUserId !== userId) {
-              return;
-            }
-            secondary = Array.from(revealedMap[destUserId]);
-          }
+          primary = Array.from(tiles);
+          secondary = newArrayFromSharedTileMap(endCategory, destUserId);
 
           spliceUpdate(primary, secondary, source.index, destination.index, draggableId);
-
-          if (endCategory === 'discarded') {
-            discardHandDragUpdate(primary, secondary, destUserId);
-          } else {
-            if (destUserId !== userId) {
-              return;
-            }
-            revealedHandDragUpdate(primary, secondary, destUserId);
-          }
-
+          sharedWithHandDragUpdate(primary, secondary, destUserId, endCategory);
         }
-        // Moving Discard <-> Hand or Revealed <-> Hand
+        // Moving Discard -> Hand or Revealed -> Hand
         else {
           const sourceUserId = source.droppableId.split('/')[1];
-          secondary= Array.from(tiles);
-          if (startCategory === 'discarded') {
-            primary = Array.from(discardMap[sourceUserId]);
-          } else {
-            if (sourceUserId !== userId) {
-              return;
-            }
-            primary = Array.from(revealedMap[sourceUserId]);
-          }
+          if (startCategory === 'revealed' && sourceUserId !== userId) return;
+
+          primary = newArrayFromSharedTileMap(startCategory, sourceUserId);
+          secondary = Array.from(tiles);
 
           spliceUpdate(primary, secondary, source.index, destination.index, draggableId);
-
-          if (startCategory === 'discarded') {
-            discardHandDragUpdate(secondary, primary, sourceUserId);
-          } else {
-            revealedHandDragUpdate(secondary, primary, sourceUserId);
-          }
+          sharedWithHandDragUpdate(secondary, primary, sourceUserId, startCategory);
         }
       }
     }
