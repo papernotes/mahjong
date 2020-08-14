@@ -16,7 +16,8 @@ const DiscardAreaStyle = styled.div`
   margin: 10px auto 30px;
   display: flex;
   padding: 10px;
-  width: 100%;
+  width: 90%;
+  overflow-y: scroll;
   height: 200px;
 `;
 
@@ -24,7 +25,7 @@ function DiscardArea({ roomId, userId, tiles }: DiscardAreaProps) {
   return (
     <div>
       <p>{userId}</p>
-      <Droppable droppableId={'discarded/' + userId} direction='horizontal'>
+      <Droppable droppableId={'discarded/' + userId} direction='horizontal' min-width='200'>
         {(provided, snapshot) =>
           <DiscardAreaStyle {...provided.droppableProps} ref={provided.innerRef}>
             <TileList tiles={tiles}/>

@@ -23,7 +23,7 @@ class TileUtils {
   static getTileName(tileId: number) : string {
     for (const key of Object.keys(RANGES)) {
       if ((TileUtils.getRangeMin(key) <= tileId) && (tileId <= TileUtils.getRangeMax(key))) {
-        return TileUtils.getTileNumber(key, tileId).toString() + " - " + key;
+        return TileUtils.getTileNumber(key, tileId).toString() + "/" + key;
       }
     }
     return '';

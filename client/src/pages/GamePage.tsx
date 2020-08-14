@@ -210,9 +210,8 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
             return <DiscardArea key={index} tiles={discardMap[uid] || []} roomId={roomId} userId={uid}/>
           }
         )}
-        <h2>Game Page - {match.params.roomId} </h2>
-        <HandArea tiles={tiles} userId={userId}/>
         <PlayerMoves roomId={roomId}/>
+        <HandArea tiles={tiles} userId={userId}/>
       </div>
     </DragDropContext>
   );

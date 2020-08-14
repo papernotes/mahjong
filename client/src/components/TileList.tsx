@@ -3,7 +3,7 @@ import styled from "styled-components";
 import Tile from '../components/Tile';
 
 const TileListStyle = styled.div`
-  padding: 8px;
+  padding: 10px;
   display: flex;
 `
 
