@@ -117,7 +117,6 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
   // TODO, if one user is holding it, another moves it, user holding might have out of date local data
   // Verify that the move is possible? Callable function?
   function updateFirestore(newTiles : number[], category : string, userId : string) {
-    console.log("Updating firestore for " + category);
     const handRef = firebase.firestore().collection(`rooms/${roomId}/${category}/`).doc(userId)
     return handRef.update({
       tiles: newTiles
@@ -131,7 +130,6 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
   // TODO refactor
   // Primary is what we want the hand to be
   function discardHandDragUpdate(primary : number[], secondary: number[], destUserId : string) {
-    console.log("Updating discard map")
     updateFirestore(primary, 'hand', userId);
     updateFirestore(secondary, 'discarded', destUserId);
     setTiles(primary);
@@ -139,7 +137,6 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
   }
 
   function revealedHandDragUpdate(primary : number[], secondary: number[], destUserId : string) {
-    console.log("Updating revealed map")
     updateFirestore(primary, 'hand', userId);
     updateFirestore(secondary, 'revealed', destUserId);
     setTiles(primary);
@@ -214,6 +211,9 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
 
       // hand, revealed, discarded
       let sameHandUserId = start.split('/')[1];
+
+      // Do not allow users reorder if it's not their own revealed area
+      if (startCategory === 'revealed' && sameHandUserId !== userId) { return }
 
       switch(startCategory) {
         case 'hand':
