@@ -87,7 +87,9 @@ export const joinRoom = functions.https.onCall( async (data, context) => {
 
 async function setRoomTiles(roomId: string) {
   const mappingRef = db.collection('mappings').doc(roomId)
+  const countRef = db.collection(`mappings/${roomId}/tilesLeft`).doc('count');
   mappingRef.set({order: shuffleTiles()})
+  countRef.set({count: numTiles});
 }
 
 async function addUserToRoom(userId: string, roomId: string) {
@@ -109,22 +111,35 @@ async function addUserToRoom(userId: string, roomId: string) {
 export const newRoom = functions.https.onCall( async (data, context) => {
   const userId = data['userId'];
   const roomRef = db.collection('rooms').doc();
-  const roomId = await roomRef.set(baseRoomValues)
-    .then( (res) => {
-      return roomRef.id;
-    });
 
-  await setRoomTiles(roomId);
-  return await addUserToRoom(userId, roomId)
-    .then((res) => {
-      return {roomId: roomId, userId: userId}
-    });
+  try {
+    return await db.runTransaction(async t => {
+      const roomId = await roomRef.set(baseRoomValues)
+        .then( (res) => {
+          return roomRef.id;
+        });
+      await setRoomTiles(roomId);
+      return await addUserToRoom(userId, roomId)
+        .then((res) => {
+          return {roomId: roomId, userId: userId}
+        });
+    })
+  } catch (e) {
+    functions.logger.error(e);
+  }
+  throw new functions.https.HttpsError(
+    'not-found',
+    'Could not create room'
+  );
+
+
 });
 
 export const drawTile = functions.https.onCall( async(data, context) => {
   const roomId = data.roomId;
   const userId = data.userId;
   const mappingRef = db.doc(`mappings/${roomId}`)
+  const countRef = db.collection(`mappings/${roomId}/tilesLeft`).doc('count');
   const userHandRef = db.doc(`rooms/${roomId}/hand/${userId}`)
 
   try {
@@ -151,6 +166,9 @@ export const drawTile = functions.https.onCall( async(data, context) => {
       await t.update(mappingRef, {
         order: admin.firestore.FieldValue.arrayRemove(tileId)
       });
+      await t.update(countRef, {
+        count: admin.firestore.FieldValue.increment(-1)
+      })
 
       return { tileId: tileId };
     })

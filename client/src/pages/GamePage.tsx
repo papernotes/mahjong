@@ -25,9 +25,11 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
 
   const [tiles, setTiles] = useState<number[]>([]);
   const [uids, setUids] = useState<string[]>([]);
+
   const [discardMap, setDiscardMap] = useState<SharedTileMapping>({});
   const [revealedMap, setRevealedMap] = useState<SharedTileMapping>({});
   const [createdMap, setCreatedMap] = useState<boolean>(false);
+  const [tilesLeft, setTilesLeft] = useState<number>(-1);
 
   function updateSharedTileMap(uid : string, newTiles : number[], category : string) {
     if (category === 'discarded') {
@@ -100,9 +102,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     }
   }
 
-  // TODO make transaction
-  // TODO, if one user is holding it, another moves it, user holding might have out of date local data
-  // Verify that the move is possible? Callable function?
+  // TODO make transaction?
   function updateFirestore(newTiles : number[], category : string, userId : string) {
     const handRef = firebase.firestore().collection(`rooms/${roomId}/${category}/`).doc(userId)
     return handRef.update({
@@ -124,6 +124,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
 
   useEffect(() => {
     let handUnsub : Function;
+    let countUnsub : Function;
 
     if (userId && roomId) {
       const userIdRef = firebase.firestore().collection('rooms').doc(roomId);
@@ -143,6 +144,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
         });
 
       const handRef = firebase.firestore().collection(`rooms/${roomId}/hand`).doc(userId);
+      const countRef = firebase.firestore().collection(`mappings/${roomId}/tilesLeft`).doc('count');
       handUnsub = handRef.onSnapshot(function(doc) {
         const data = doc.data();
         if (data) {
@@ -155,10 +157,19 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
           }
         }
       });
+
+      countUnsub = countRef.onSnapshot(function(doc) {
+        const data = doc.data();
+        if (data) {
+          setTilesLeft(data.count);
+        }
+      })
+
     }
 
     return () => {
       handUnsub && handUnsub();
+      countUnsub && countUnsub();
     }
   // eslint-disable-next-line
   }, [userId, roomId]);
@@ -249,6 +260,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     <DragDropContext
       onDragEnd={onDragEnd}>
       <div>
+        <p> Tiles left: {tilesLeft} </p>
         {uids.map( (uid, index) => {
             return <DiscardArea key={index} tiles={discardMap[uid] || []} roomId={roomId} userId={uid}/> }
         )}
