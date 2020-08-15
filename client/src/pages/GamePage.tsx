@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { RouteComponentProps } from 'react-router-dom';
+import { RouteComponentProps, useHistory } from 'react-router-dom';
 import { DragDropContext } from 'react-beautiful-dnd';
 import { UserContext } from '../context';
 
@@ -19,6 +19,7 @@ type SharedTileMapping = {
 }
 
 function GamePage({match} : RouteComponentProps<MatchParams>) {
+  const history = useHistory();
   const userId = useContext(UserContext).userId;
   const roomId = match.params.roomId;
 
@@ -135,6 +136,9 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
             setDiscardMap(createSharedTileMap(uids));
             setRevealedMap(createSharedTileMap(uids));
             setCreatedMap(true);
+          } else {
+            console.error("No room found");
+            history.push('/');
           }
         });
 

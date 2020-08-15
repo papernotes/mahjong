@@ -54,12 +54,12 @@ export const joinRoom = functions.https.onCall( async (data, context) => {
       const userIds = roomData.userIds;
       let newCount = roomData.numUsers;
 
+      // TODO
       if (newCount >= 4) {
         throw new functions.https.HttpsError(
           'failed-precondition',
           'Room full'
         );
-        return {success: false}
       }
 
       if (userIds.includes(userId)) {
@@ -76,7 +76,7 @@ export const joinRoom = functions.https.onCall( async (data, context) => {
     });
   } catch (e) {
     functions.logger.error(e);
-    return { success: false };
+    throw e;
   }
 
   throw new functions.https.HttpsError(

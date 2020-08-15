@@ -33,9 +33,17 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
       const joinRoom = firebase.functions().httpsCallable('joinRoom');
       try {
         joinRoom({userId: userId, roomId: roomId})
+          .then((res) => {
+            console.log(res);
+          })
           .catch((err) => {
+            console.log(err);
             if (err.code === 'failed-precondition') {
               console.error('Cannot join room - lobby full');
+            }
+            if (err.code === 'not-found') {
+              history.push('/');
+              console.error('Non existent room')
             }
             console.log('Still creating user');
           })
