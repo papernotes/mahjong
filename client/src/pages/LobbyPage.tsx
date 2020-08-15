@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useContext } from 'react';
 import { RouteComponentProps } from 'react-router-dom';
 import { useHistory } from 'react-router-dom';
-import firebase from '../firebase';
+import firebase, { db } from '../firebase';
 import { UserContext } from '../context';
 
 type MatchParams = {
@@ -21,7 +21,7 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
   }
 
   useEffect(() => {
-    const ref = firebase.firestore().collection('rooms').doc(roomId);
+    const ref = db.collection('rooms').doc(roomId);
     const unsubscribe = ref.onSnapshot(function(doc) {
       const data = doc.data();
       if (data) {
@@ -56,7 +56,7 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
     return () => {
       unsubscribe();
     }
-
+  // eslint-disable-next-line
   }, [roomId, userId, userCreated])
 
   function listUsernames() {

@@ -8,7 +8,7 @@ import PlayerMoves from '../components/PlayerMoves';
 import DiscardArea from '../components/DiscardArea';
 import RevealedArea from '../components/RevealedArea';
 
-import firebase from '../firebase';
+import { db } from '../firebase';
 
 type MatchParams = {
   roomId: string;
@@ -46,7 +46,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
   }
 
   function createSharedTileListener(uid : string, sharedMap : SharedTileMapping, category : string) {
-    const ref = firebase.firestore().collection(`rooms/${roomId}/${category}`).doc(uid);
+    const ref = db.collection(`rooms/${roomId}/${category}`).doc(uid);
     const sharedUnsub = ref.onSnapshot((doc) => {
       const data = doc.data();
       if (data) {
@@ -104,7 +104,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
 
   // TODO make transaction?
   function updateFirestore(newTiles : number[], category : string, userId : string) {
-    const handRef = firebase.firestore().collection(`rooms/${roomId}/${category}/`).doc(userId)
+    const handRef = db.collection(`rooms/${roomId}/${category}/`).doc(userId)
     return handRef.update({
       tiles: newTiles
     })
@@ -127,7 +127,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     let countUnsub : Function;
 
     if (userId && roomId) {
-      const userIdRef = firebase.firestore().collection('rooms').doc(roomId);
+      const userIdRef = db.collection('rooms').doc(roomId);
       userIdRef.get()
         .then((doc) => {
           const data = doc.data();
@@ -143,8 +143,8 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
           }
         });
 
-      const handRef = firebase.firestore().collection(`rooms/${roomId}/hand`).doc(userId);
-      const countRef = firebase.firestore().collection(`mappings/${roomId}/tilesLeft`).doc('count');
+      const handRef = db.collection(`rooms/${roomId}/hand`).doc(userId);
+      const countRef = db.collection(`mappings/${roomId}/tilesLeft`).doc('count');
       handUnsub = handRef.onSnapshot(function(doc) {
         const data = doc.data();
         if (data) {

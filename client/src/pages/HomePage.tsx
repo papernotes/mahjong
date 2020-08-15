@@ -5,7 +5,7 @@ import Paper from '@material-ui/core/Paper';
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/core/styles';
-import firebase from '../firebase';
+import firebase, { db } from '../firebase';
 import { UserContext } from '../context';
 
 
@@ -34,7 +34,7 @@ function HomePage() {
   useEffect( () => {
     let unsubscribe : Function;
     if (userId) {
-      const ref = firebase.firestore().collection('users').doc(userId);
+      const ref = db.collection('users').doc(userId);
       unsubscribe = ref.onSnapshot(doc => {
         const data = doc.data();
         if (data) {
@@ -58,7 +58,7 @@ function HomePage() {
   }
 
   async function updateUsername() {
-    firebase.firestore().collection('users').doc(userId)
+    db.collection('users').doc(userId)
       .update({username: username})
       .catch( (error) => {
         console.error("Error", error);

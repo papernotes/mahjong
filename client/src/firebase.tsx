@@ -22,5 +22,6 @@ if (process.env.REACT_APP_LOCAL_DEV) {
   firebase.firestore().settings({host:'localhost:8080', ssl: false});
 }
 
+export const db = firebase.firestore();
 
 export default firebase;

@@ -4,7 +4,7 @@ import GamePage from './pages/GamePage';
 import HomePage from './pages/HomePage';
 import LobbyPage from './pages/LobbyPage';
 import LoadingPage from './pages/LoadingPage';
-import firebase from './firebase';
+import firebase, { db } from './firebase';
 import { UserContext } from './context';
 
 
@@ -36,7 +36,7 @@ function App() {
 
   useEffect( () => {
     if (userId) {
-      const docRef = firebase.firestore().collection('users').doc(userId)
+      const docRef = db.collection('users').doc(userId)
       docRef.get()
         .then((doc) => {
           if (!doc.exists) {
