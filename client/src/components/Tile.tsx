@@ -25,7 +25,6 @@ const TileStyle = styled.div`
           transform: translate(0px, 0px);
 `
 
-// TODO set styles based on getTileName()
 function Tile(props : TileProps) {
   const [id, setId] = useState(-1);
 

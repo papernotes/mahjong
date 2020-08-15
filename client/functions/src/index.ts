@@ -22,7 +22,6 @@ function shuffleTiles() : number[] {
   return tiles;
 }
 
-// TODO add user to room's hand fields
 export const joinRoom = functions.https.onCall( async (data, context) => {
   const userId = data['userId'];
   const roomId = data['roomId'];
@@ -53,6 +52,13 @@ export const joinRoom = functions.https.onCall( async (data, context) => {
       const username = userData.username;
       const userIds = roomData.userIds;
       let newCount = roomData.numUsers;
+
+      if (userIds.includes(userId)) {
+        throw new functions.https.HttpsError(
+          'already-exists',
+          'User already added to room'
+        );
+      }
 
       // TODO
       if (newCount >= 4) {
@@ -131,11 +137,12 @@ export const newRoom = functions.https.onCall( async (data, context) => {
     'not-found',
     'Could not create room'
   );
-
-
 });
 
-export const drawTile = functions.https.onCall( async(data, context) => {
+const drawTileOpts = {
+  timeoutSeconds: 300
+}
+export const drawTile = functions.runWith(drawTileOpts).https.onCall( async(data, context) => {
   const roomId = data.roomId;
   const userId = data.userId;
   const mappingRef = db.doc(`mappings/${roomId}`)

@@ -27,7 +27,6 @@ function App() {
       console.log('error', err)
     })
 
-    // TODO cleanup auth
   }, [userId]);
 
   // TODO make nicer usernames
