@@ -41,7 +41,7 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
             if (err.code === 'failed-precondition') {
               console.error('Cannot join room - lobby full');
             }
-            if (err.code === 'not-found') {
+            if (!userId && err.code === 'not-found') {
               history.push('/');
               console.error('Non existent room')
             }

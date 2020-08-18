@@ -11,8 +11,8 @@ type TileProps = {
 }
 
 const TileStyle = styled.div`
-  width: 75px;
-  height: 100px;
+  width: 55px;
+  height: 75px;
   background-color: floralwhite;
   border: 3px;
   touch-action: none;
@@ -50,7 +50,7 @@ function Tile(props : TileProps) {
             ref={provided.innerRef}
             className='tile' id={id.toString()}
           >
-          <p style={{fontSize: 100}}>{getUnicodeString(id)}</p>
+          <p style={{fontSize: 75}}>{getUnicodeString(id)}</p>
           </TileStyle>
         </Tooltip>
       )}

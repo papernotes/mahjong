@@ -12,11 +12,11 @@ const Container = styled.div`
   background-color: cornsilk;
   border: dashed 4px transparent;
   border-radius: 4px;
+  margin: 2px auto 2px;
   display: flex;
-  overflow-y: scroll;
-  width: 90%;
-  margin: 10px auto 30px;
   padding: 10px;
+  width: 90%;
+  overflow-y: scroll;
 `
 
 function HandArea({tiles, userId} : HandAreaProps) {

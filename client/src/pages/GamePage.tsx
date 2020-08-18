@@ -7,6 +7,8 @@ import HandArea from '../components/HandArea';
 import PlayerMoves from '../components/PlayerMoves';
 import DiscardArea from '../components/DiscardArea';
 import RevealedArea from '../components/RevealedArea';
+import Grid from '@material-ui/core/Grid';
+import Paper from '@material-ui/core/Paper';
 
 import { db } from '../firebase';
 
@@ -16,6 +18,10 @@ type MatchParams = {
 
 type SharedTileMapping = {
   [uid : string] : number[];
+}
+
+type UsernameMapping = {
+  [uid: string] : string;
 }
 
 function GamePage({match} : RouteComponentProps<MatchParams>) {
@@ -28,6 +34,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
 
   const [discardMap, setDiscardMap] = useState<SharedTileMapping>({});
   const [revealedMap, setRevealedMap] = useState<SharedTileMapping>({});
+  const [usernameMap, setUsernameMap] = useState<UsernameMapping>({});
   const [createdMap, setCreatedMap] = useState<boolean>(false);
   const [tilesLeft, setTilesLeft] = useState<number>(-1);
 
@@ -73,8 +80,24 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     uids.forEach(uid => {
       unsubs.push(createSharedTileListener(uid, discardMap, 'discarded'));
       unsubs.push(createSharedTileListener(uid, discardMap, 'revealed'));
+      unsubs.push(createUsernameListener(uid));
     });
     return unsubs;
+  }
+
+  function createUsernameListener(uid : string) {
+    const usernameRef = db.collection('users').doc(uid);
+    const usernameUnsub = usernameRef.onSnapshot(function(doc) {
+      const data = doc.data();
+      if (data) {
+        const newUsername = data.username;
+        setUsernameMap(prevMap => ({
+          ...prevMap,
+          [uid]: newUsername
+        }));
+      }
+    });
+    return usernameUnsub;
   }
 
   function createSharedTileMap(uids : number[]) {
@@ -122,6 +145,14 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     updateSharedTileMap(destUserId, secondary, category);
   }
 
+  function createUsernameMap(uids : string) {
+    const newMap : UsernameMapping = {};
+    for (const uid of uids) {
+      newMap[uid] = ''
+    }
+    return newMap
+  }
+
   useEffect(() => {
     let handUnsub : Function;
     let countUnsub : Function;
@@ -134,6 +165,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
           if (data) {
             const uids = data.userIds;
             setUids(uids);
+            setUsernameMap(createUsernameMap(uids));
             setDiscardMap(createSharedTileMap(uids));
             setRevealedMap(createSharedTileMap(uids));
             setCreatedMap(true);
@@ -163,8 +195,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
         if (data) {
           setTilesLeft(data.count);
         }
-      })
-
+      });
     }
 
     return () => {
@@ -256,19 +287,75 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     }
   }
 
+  function createCurrentUserArea() {
+    return (
+      <div>
+        <DiscardArea key={4} tiles={discardMap[userId] || []} roomId={roomId} userId={userId}/>
+        <HandArea tiles={tiles} userId={userId}/>
+      </div>
+    );
+  }
+
+  function generateOtherUserArea(index : number) {
+    if (uids.length !== 4) return <div>Not enough users</div>;
+
+    const otherUids = JSON.parse(JSON.stringify(uids));
+    let point = otherUids.indexOf(userId);
+    let firstHalf : string[] = [];
+    let end : string[];
+
+    // splice point
+    point = point === 0 ? 1 : point;
+
+    // Sorted in order already
+    if (point !== 3) {
+      firstHalf = otherUids.splice(0, point);
+    } else {
+      end = otherUids;
+    }
+    end = otherUids.concat(firstHalf);
+
+    // 0, 1, 2 counter clockwise
+    const uid = end[index];
+
+    if (!uid) return <div>No user</div>
+    if (uid === userId) return <div>Same</div>
+    return (
+      <div>
+        <p>{usernameMap[uid] || 'Loading username...'} </p>
+        <RevealedArea key={index} tiles={revealedMap[uid] || []} userId={uid}/>
+        <DiscardArea key={index+10} tiles={discardMap[uid] || []} roomId={roomId} userId={uid}/>
+      </div>
+    );
+  }
+
   return (
     <DragDropContext
       onDragEnd={onDragEnd}>
       <div>
-        <p> Tiles left: {tilesLeft} </p>
-        {uids.map( (uid, index) => {
-            return <DiscardArea key={index} tiles={discardMap[uid] || []} roomId={roomId} userId={uid}/> }
-        )}
-        {uids.map( (uid, index) => {
-            return <RevealedArea key={index} tiles={revealedMap[uid] || []} userId={uid}/> }
-        )}
-        <PlayerMoves roomId={roomId}/>
-        <HandArea tiles={tiles} userId={userId}/>
+        <Grid container spacing={2}>
+          <Grid item xs={4}/>
+          <Grid item xs={4}>
+            <Paper>{generateOtherUserArea(1)}</Paper>
+          </Grid>
+          <Grid item xs={4}/>
+          <Grid item xs={4}>
+            <Paper>{generateOtherUserArea(2)}</Paper>
+          </Grid>
+          <Grid item xs={4}>
+            <Paper>Tiles left: {tilesLeft}</Paper>
+          </Grid>
+          <Grid item xs={4}>
+            <Paper>{generateOtherUserArea(0)}</Paper>
+          </Grid>
+          <Grid item xs={9}>
+            <Paper>{createCurrentUserArea()}</Paper>
+          </Grid>
+          <Grid item xs={3}>
+            <Paper>{<PlayerMoves roomId={roomId}/>}</Paper>
+            <Paper><RevealedArea key={4} tiles={revealedMap[userId] || []} userId={userId}/></Paper>
+          </Grid>
+        </Grid>
       </div>
     </DragDropContext>
   );
