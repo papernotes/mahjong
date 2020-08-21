@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from 'react';
+import React, { useContext } from 'react';
 import { useHistory } from 'react-router-dom';
 import firebase from '../firebase';
 import { UserContext } from '../context';
@@ -9,11 +9,7 @@ type PlayerMovesProps = {
 
 function PlayerMoves({ roomId }: PlayerMovesProps) {
   const history = useHistory();
-  const userId = useContext(UserContext).userId
-
-  useEffect( () => {
-
-  }, []);
+  const userId = useContext(UserContext).userId;
 
   async function handleDrawTile() {
     const drawTile = firebase.functions().httpsCallable('drawTile');

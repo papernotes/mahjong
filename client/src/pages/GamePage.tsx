@@ -7,10 +7,12 @@ import HandArea from '../components/HandArea';
 import PlayerMoves from '../components/PlayerMoves';
 import DiscardArea from '../components/DiscardArea';
 import RevealedArea from '../components/RevealedArea';
+import GameLog from '../components/GameLog';
+
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 
-import { db } from '../firebase';
+import firebase, { db } from '../firebase';
 
 type MatchParams = {
   roomId: string;
@@ -153,6 +155,18 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     return newMap
   }
 
+  async function emitLog(message : string, tileId: number) {
+    const drawTile = firebase.functions().httpsCallable('logLastAction');
+    try {
+      drawTile({message: message, roomId: roomId, tileId: tileId})
+        .catch(e => {
+          console.log(e);
+        })
+    } catch (err) {
+      console.error("error", err);
+    }
+  }
+
   useEffect(() => {
     let handUnsub : Function;
     let countUnsub : Function;
@@ -271,6 +285,10 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
 
           spliceUpdate(primary, secondary, source.index, destination.index, draggableId);
           sharedWithHandDragUpdate(primary, secondary, destUserId, endCategory);
+
+          emitLog(`${usernameMap[userId]}
+            ${endCategory === 'revealed' ? 'revealed' : 'discarded'}`, parseInt(draggableId)
+          );
         }
         // Moving Discard -> Hand or Revealed -> Hand
         else {
@@ -282,6 +300,12 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
 
           spliceUpdate(primary, secondary, source.index, destination.index, draggableId);
           sharedWithHandDragUpdate(secondary, primary, sourceUserId, startCategory);
+
+          const message = startCategory === 'discarded' ?
+            `${usernameMap[sourceUserId]}'s discarded` :
+            'their revealed';
+
+          emitLog(`${usernameMap[userId]} took from ${message}`, draggableId);
         }
       }
     }
@@ -343,7 +367,8 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
             <Paper>{generateOtherUserArea(2)}</Paper>
           </Grid>
           <Grid item xs={4}>
-            <Paper>Tiles left: {tilesLeft}</Paper>
+            <h3>Tiles left: {tilesLeft}</h3>
+            <GameLog roomId={roomId}/>
           </Grid>
           <Grid item xs={4}>
             <Paper>{generateOtherUserArea(0)}</Paper>

@@ -10,7 +10,9 @@ const baseRoomValues = {
   'numUsers': 0,
   'userIds': [],
   'usernames': [],
-  'userIndex': 0
+  'userIndex': 0,
+  'lastAction': '',
+  'lastActionTileId': -1
 }
 
 function shuffleTiles() : number[] {
@@ -142,6 +144,7 @@ export const newRoom = functions.https.onCall( async (data, context) => {
 const drawTileOpts = {
   timeoutSeconds: 300
 }
+
 export const drawTile = functions.runWith(drawTileOpts).https.onCall( async(data, context) => {
   const roomId = data.roomId;
   const userId = data.userId;
@@ -188,3 +191,22 @@ export const drawTile = functions.runWith(drawTileOpts).https.onCall( async(data
     'Could not draw tile'
   );
 });
+
+export const logLastAction = functions.https.onCall( async(data, context) => {
+  const roomId = data.roomId;
+  const message = data.message;
+  const tileId = data.tileId
+  const roomRef = db.doc(`rooms/${roomId}`);
+
+  try {
+    return await db.runTransaction(async t => {
+      await t.update(roomRef, {
+        lastAction: message,
+        lastActionTileId: tileId
+      });
+    })
+  } catch (e) {
+    functions.logger.error(e);
+    throw e;
+  }
+})
