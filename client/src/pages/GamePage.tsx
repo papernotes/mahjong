@@ -340,6 +340,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
   function createCurrentUserArea() {
     return (
       <div>
+        <Button color='secondary' onClick={() => setOpen(true)}>Reveal hand</Button>
         <DiscardArea key={4} tiles={discardMap[userId] || []} roomId={roomId} userId={userId}/>
         <HandArea tiles={tiles} userId={userId}/>
       </div>
@@ -402,13 +403,12 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
           <Grid item xs={4}>
             <Paper>{generateOtherUserArea(0)}</Paper>
           </Grid>
-          <Grid item xs={9}>
+          <Grid item xs={8}>
             <Paper>{createCurrentUserArea()}</Paper>
           </Grid>
-          <Grid item xs={3}>
+          <Grid item xs={4}>
             <PlayerMoves username={usernameMap[userId]} roomId={roomId}/>
             <Paper><RevealedArea key={4} tiles={revealedMap[userId] || []} userId={userId}/></Paper>
-            <Button onClick={() => setOpen(true)}>Reveal hand</Button>
             <Dialog onClose={() => setOpen(false)} open={open}>
               <DialogContentText>
                 <h2>Are you sure you want to reveal your hand?</h2>

@@ -3,7 +3,8 @@ import TileUtils from '../utils/TileUtils';
 import TileUnicode from '../utils/TileUnicode';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import { makeStyles } from '@material-ui/core/styles';
+import Tooltip from '@material-ui/core/Tooltip';
+import { withStyles, Theme, makeStyles } from '@material-ui/core/styles';
 import { db } from '../firebase';
 
 type GameLogProps = {
@@ -18,6 +19,14 @@ const useStyles = makeStyles((theme) => ({
     fontSize: 20
   }
 }));
+
+const TileTooltip = withStyles((theme: Theme) => ({
+  tooltip: {
+    backgroundColor: 'green',
+    maxWidth: 500,
+    fontSize: 100
+  }
+}))(Tooltip);
 
 function GameLog({roomId} : GameLogProps) {
   const [logs, setLogs] = useState<string[]>([]);
@@ -63,7 +72,15 @@ function GameLog({roomId} : GameLogProps) {
             const data = message.split('/');
             const msg = data[0];
             const tileId = data[1];
-            return <ListItem key={index} button>{msg} {getUnicodeString(parseInt(tileId))}</ListItem>;
+            return (
+            <ListItem key={index} button>
+              <TileTooltip title={getUnicodeString(parseInt(tileId))} placement='right'>
+                <div>
+                  {msg} {getUnicodeString(parseInt(tileId))}
+                </div>
+              </TileTooltip>
+             </ListItem>
+            );
           })}
         </List>
       </div>
