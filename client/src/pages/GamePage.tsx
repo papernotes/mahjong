@@ -10,7 +10,12 @@ import RevealedArea from '../components/RevealedArea';
 import GameLog from '../components/GameLog';
 
 import Grid from '@material-ui/core/Grid';
+import Dialog from '@material-ui/core/Dialog';
+import DialogContentText from '@material-ui/core/DialogContentText';
 import Paper from '@material-ui/core/Paper';
+import Button from '@material-ui/core/Button';
+import ButtonGroup from '@material-ui/core/ButtonGroup';
+import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
 
 import firebase, { db } from '../firebase';
 
@@ -25,11 +30,21 @@ type SharedTileMapping = {
 type UsernameMapping = {
   [uid: string] : string;
 }
+const useStyles = makeStyles((theme : Theme) =>
+  createStyles({
+    root: {
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center'
+    }
+  })
+);
 
 function GamePage({match} : RouteComponentProps<MatchParams>) {
   const history = useHistory();
   const userId = useContext(UserContext).userId;
   const roomId = match.params.roomId;
+  const classes = useStyles();
 
   const [tiles, setTiles] = useState<number[]>([]);
   const [uids, setUids] = useState<string[]>([]);
@@ -39,6 +54,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
   const [usernameMap, setUsernameMap] = useState<UsernameMapping>({});
   const [createdMap, setCreatedMap] = useState<boolean>(false);
   const [tilesLeft, setTilesLeft] = useState<number>(-1);
+  const [open, setOpen] = useState(false);
 
   function updateSharedTileMap(uid : string, newTiles : number[], category : string) {
     if (category === 'discarded') {
@@ -317,6 +333,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     setTiles([]);
     updateFirestore([], 'hand', userId);
     updateFirestore(newTiles, 'revealed', userId);
+    setOpen(false);
     emitLog(`${usernameMap[userId]} revealed their hand!`, -1)
   }
 
@@ -391,7 +408,18 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
           <Grid item xs={3}>
             <PlayerMoves username={usernameMap[userId]} roomId={roomId}/>
             <Paper><RevealedArea key={4} tiles={revealedMap[userId] || []} userId={userId}/></Paper>
-            <button onClick={revealHand}>Reveal hand</button>
+            <Button onClick={() => setOpen(true)}>Reveal hand</Button>
+            <Dialog onClose={() => setOpen(false)} open={open}>
+              <DialogContentText>
+                <h2>Are you sure you want to reveal your hand?</h2>
+              </DialogContentText>
+              <div className={classes.root}>
+                <ButtonGroup size='large'>
+                  <Button color='default' onClick={revealHand}>Yes, I'm sure</Button>
+                  <Button color='secondary' onClick={() => setOpen(false)}>No, just kidding</Button>
+                </ButtonGroup>
+              </div>
+            </Dialog>
           </Grid>
         </Grid>
       </div>
