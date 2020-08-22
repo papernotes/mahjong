@@ -12,7 +12,7 @@ type TileProps = {
 
 const TileStyle = styled.div`
   width: 55px;
-  height: 75px;
+  height: 70px;
   background-color: floralwhite;
   border: 3px;
   touch-action: none;
@@ -33,7 +33,7 @@ function Tile(props : TileProps) {
   }, [props.id]);
 
   function getUnicodeString(id : number) {
-    if (id === -1) { return }
+    if (id === -1) return TileUnicode.getBackTile();
     let count;
     let type;
     [count, type] = TileUtils.getTileName(id).split('/');

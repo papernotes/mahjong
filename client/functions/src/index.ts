@@ -12,7 +12,9 @@ const baseRoomValues = {
   'usernames': [],
   'userIndex': 0,
   'lastAction': '',
-  'lastActionTileId': -1
+  'lastActionTileId': -1,
+  'numActions': 1,
+  'roomOwner': ''
 }
 
 function shuffleTiles() : number[] {
@@ -86,11 +88,6 @@ export const joinRoom = functions.https.onCall( async (data, context) => {
     functions.logger.error(e);
     throw e;
   }
-
-  throw new functions.https.HttpsError(
-    'failed-precondition',
-    'Could not join room'
-  );
 });
 
 async function setRoomTiles(roomId: string) {
@@ -122,7 +119,9 @@ export const newRoom = functions.https.onCall( async (data, context) => {
 
   try {
     return await db.runTransaction(async t => {
-      const roomId = await roomRef.set(baseRoomValues)
+      const newRoomValues = JSON.parse(JSON.stringify(baseRoomValues));
+      newRoomValues['roomOwner'] = userId;
+      const roomId = await roomRef.set(newRoomValues)
         .then( (res) => {
           return roomRef.id;
         });
@@ -202,7 +201,8 @@ export const logLastAction = functions.https.onCall( async(data, context) => {
     return await db.runTransaction(async t => {
       await t.update(roomRef, {
         lastAction: message,
-        lastActionTileId: tileId
+        lastActionTileId: tileId,
+        numActions: admin.firestore.FieldValue.increment(1)
       });
     })
   } catch (e) {

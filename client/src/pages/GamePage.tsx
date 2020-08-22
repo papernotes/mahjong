@@ -357,7 +357,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     <DragDropContext
       onDragEnd={onDragEnd}>
       <div>
-        <Grid container spacing={2}>
+        <Grid container spacing={1}>
           <Grid item xs={4}/>
           <Grid item xs={4}>
             <Paper>{generateOtherUserArea(1)}</Paper>
@@ -367,8 +367,10 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
             <Paper>{generateOtherUserArea(2)}</Paper>
           </Grid>
           <Grid item xs={4}>
-            <h3>Tiles left: {tilesLeft}</h3>
-            <GameLog roomId={roomId}/>
+            <Paper>
+              <h3>Tiles left: {tilesLeft}</h3>
+              <GameLog roomId={roomId}/>
+            </Paper>
           </Grid>
           <Grid item xs={4}>
             <Paper>{generateOtherUserArea(0)}</Paper>
@@ -377,7 +379,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
             <Paper>{createCurrentUserArea()}</Paper>
           </Grid>
           <Grid item xs={3}>
-            <Paper>{<PlayerMoves roomId={roomId}/>}</Paper>
+            <PlayerMoves username={usernameMap[userId]} roomId={roomId}/>
             <Paper><RevealedArea key={4} tiles={revealedMap[userId] || []} userId={userId}/></Paper>
           </Grid>
         </Grid>

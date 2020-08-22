@@ -11,8 +11,6 @@ type GameLogProps = {
 }
 const useStyles = makeStyles((theme) => ({
   root: {
-    width: '100%',
-    maxWidth: 360,
     backgroundColor: theme.palette.background.paper,
     position: 'relative',
     overflow: 'auto',
@@ -26,7 +24,7 @@ function GameLog({roomId} : GameLogProps) {
   const classes = useStyles();
 
   function getUnicodeString(id : number) {
-    if (id === -1) { return }
+    if (id === -1) return TileUnicode.getBackTile();
     let count;
     let type;
     [count, type] = TileUtils.getTileName(id).split('/');
@@ -62,7 +60,7 @@ function GameLog({roomId} : GameLogProps) {
             const data = message.split('/');
             const msg = data[0];
             const tileId = data[1];
-            return <ListItem>{msg} {getUnicodeString(parseInt(tileId))}</ListItem>;
+            return <ListItem key={index} button>{msg} {getUnicodeString(parseInt(tileId))}</ListItem>;
           })}
         </List>
       </div>
