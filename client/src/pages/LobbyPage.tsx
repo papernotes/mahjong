@@ -4,6 +4,12 @@ import { useHistory } from 'react-router-dom';
 import firebase, { db } from '../firebase';
 import { UserContext } from '../context';
 
+import Grid from '@material-ui/core/Grid';
+import Paper from '@material-ui/core/Paper';
+import List from '@material-ui/core/List';
+import Button from '@material-ui/core/Button';
+import ListItem from '@material-ui/core/ListItem';
+
 type MatchParams = {
   roomId: string
 }
@@ -78,21 +84,33 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
 
   function listUsernames() {
     return(
-      <div>
-        {usernames.map( (username, index) => <li key={index}>{username}</li>)}
-      </div>
+      <List>
+        {usernames.map( (username, index) => <ListItem key={index}>{username}</ListItem>)}
+      </List>
     )
   }
 
   return (
-    <div>
-      <div>Lobby Page</div>
-      <div>{listUsernames()}</div>
-      {
-        (userId === roomOwner) &&
-        <button onClick={startGame}>Go to game</button>
-      }
-    </div>
+    <Grid
+      container spacing={1}
+      direction='column'
+      alignItems='center'
+      justify='center'
+      style={{minHeight:'100vh'}}
+    >
+      <Grid item xs={12}>
+        <Paper style={{minWidth: '25vw'}}>
+          <h1>Lobby</h1>
+          {listUsernames()}
+        </Paper>
+      </Grid>
+      <Grid item xs={9}>
+          {
+            (userId === roomOwner) &&
+            <Button onClick={startGame} disabled={usernames.length !== 4}>Start game for everyone</Button>
+          }
+        </Grid>
+    </Grid>
   );
 }
 
