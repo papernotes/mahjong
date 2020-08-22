@@ -353,6 +353,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     );
   }
 
+  // TODO create newRoom button for roomOwner only
   return (
     <DragDropContext
       onDragEnd={onDragEnd}>

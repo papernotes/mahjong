@@ -11,10 +11,11 @@ const baseRoomValues = {
   'userIds': [],
   'usernames': [],
   'userIndex': 0,
-  'lastAction': '',
+  'lastAction': 'Game started!',
   'lastActionTileId': -1,
   'numActions': 1,
-  'roomOwner': ''
+  'roomOwner': '',
+  'startedGame': false
 }
 
 function shuffleTiles() : number[] {
@@ -112,6 +113,34 @@ async function addUserToRoom(userId: string, roomId: string) {
 
   batch.commit();
 }
+
+export const startGame = functions.https.onCall(async(data, context) => {
+  const userId = data['userId'];
+  const roomId = data['roomId'];
+  const roomRef = db.collection('rooms').doc(roomId);
+
+  try {
+    return await db.runTransaction(async t => {
+      const roomDoc = await t.get(roomRef);
+      const roomData = roomDoc.data();
+
+      if (roomData && roomData.roomOwner === userId) {
+        await t.update(roomRef, {
+          startedGame: true
+        });
+      }
+      return {success: true}
+    });
+  } catch (e) {
+    functions.logger.error(e);
+  }
+
+  throw new functions.https.HttpsError(
+    'not-found',
+    'Could not start game'
+  );
+
+})
 
 export const newRoom = functions.https.onCall( async (data, context) => {
   const userId = data['userId'];

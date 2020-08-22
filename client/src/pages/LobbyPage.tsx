@@ -14,10 +14,22 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
   const userCreated = useContext(UserContext).userCreated;
   const roomId = match.params.roomId;
   const [usernames, setUsernames] = useState<string[]>([]);
+  const [roomOwner, setRoomOwner] = useState('');
 
   function startGame() {
     // TODO verify there are 4 users in the lobby in firebase to go to game
-    history.push('/game/' + roomId + '/game');
+    const startGame = firebase.functions().httpsCallable('startGame');
+    try {
+      startGame({userId: userId, roomId: roomId})
+        .then((res) => {
+          history.push('/game/' + roomId + '/game');
+        })
+        .catch((err) => {
+          console.error(err);
+        });
+    } catch (e) {
+      console.error(e);
+    }
   }
 
   useEffect(() => {
@@ -26,6 +38,11 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
       const data = doc.data();
       if (data) {
         setUsernames(data.usernames);
+        setRoomOwner(data.roomOwner);
+        console.log(data.startedGame);
+        if (data.startedGame) {
+          startGame();
+        }
       }
     })
 
@@ -71,7 +88,10 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
     <div>
       <div>Lobby Page</div>
       <div>{listUsernames()}</div>
-      <button onClick={startGame}>Go to game</button>
+      {
+        (userId === roomOwner) &&
+        <button onClick={startGame}>Go to game</button>
+      }
     </div>
   );
 }
