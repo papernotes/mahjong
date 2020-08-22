@@ -311,6 +311,15 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     }
   }
 
+  function revealHand() {
+    const newTiles = revealedMap[userId].concat(JSON.parse(JSON.stringify(tiles)));
+    updateSharedTileMap(userId, newTiles, 'revealed');
+    setTiles([]);
+    updateFirestore([], 'hand', userId);
+    updateFirestore(newTiles, 'revealed', userId);
+    emitLog(`${usernameMap[userId]} revealed their hand!`, -1)
+  }
+
   function createCurrentUserArea() {
     return (
       <div>
@@ -382,6 +391,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
           <Grid item xs={3}>
             <PlayerMoves username={usernameMap[userId]} roomId={roomId}/>
             <Paper><RevealedArea key={4} tiles={revealedMap[userId] || []} userId={userId}/></Paper>
+            <button onClick={revealHand}>Reveal hand</button>
           </Grid>
         </Grid>
       </div>
