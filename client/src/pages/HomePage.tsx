@@ -8,8 +8,7 @@ import { makeStyles } from '@material-ui/core/styles';
 import firebase, { db } from '../firebase';
 import { UserContext } from '../context';
 import AppToolbar from '../components/AppToolbar';
-
-
+import ButtonGroup from '@material-ui/core/ButtonGroup';
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -32,6 +31,7 @@ function HomePage() {
 
   const [username, setUsername] = useState('');
   const [invalidText, setInvalidText] = useState(false);
+  const [lobbyId, setLobbyId] = useState('');
 
   useEffect( () => {
     let unsubscribe : Function;
@@ -82,6 +82,10 @@ function HomePage() {
     }
   }
 
+  function handleJoinLobby() {
+    history.push(`/game/${lobbyId}/lobby`);
+  }
+
   return (
     <div>
       <AppToolbar/>
@@ -101,20 +105,34 @@ function HomePage() {
                   error={invalidText}
                   value={username}
                   onChange={validateText}
-                  id='outlined-basic'
+                  id='outlined-username'
                   label='Username'
                   variant='outlined'
                 />
               </Grid>
               <Grid item xs={12}>
-                <Button
-                  variant='contained'
-                  disabled={invalidText}
-                  color='primary'
-                  onClick={handleCreateNewRoom}
-                >
-                  New Room
-                </Button>
+                <TextField
+                  error={invalidText}
+                  value={lobbyId}
+                  id='outlined-lobby-id'
+                  onChange={(e) => setLobbyId(e.target.value)}
+                  label='Lobby Id'
+                  variant='outlined'
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <ButtonGroup>
+                  <Button
+                    variant='contained'
+                    disabled={invalidText}
+                    color='primary'
+                    onClick={handleCreateNewRoom}
+                  >
+                    New Room
+                  </Button>
+
+                  <Button onClick={handleJoinLobby}>Join a lobby</Button>
+                </ButtonGroup>
               </Grid>
             </Grid>
           </Paper>
