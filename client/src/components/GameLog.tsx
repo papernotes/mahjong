@@ -40,7 +40,10 @@ function GameLog({roomId} : GameLogProps) {
         const lastAction = data.lastAction;
         const lastTile = data.lastActionTileId;
         if (logs.length === 0 && lastTile === 0) {
-          setLogs([]);
+          setLogs(prevLogs => {
+            if (prevLogs.length === 0) return [];
+            return [`${lastAction}/${lastTile}`].concat(prevLogs);
+          });
         } else {
           setLogs(prevLogs => [`${lastAction}/${lastTile}`].concat(prevLogs));
         }

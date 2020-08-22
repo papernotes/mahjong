@@ -318,7 +318,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
           sharedWithHandDragUpdate(secondary, primary, sourceUserId, startCategory);
 
           const message = startCategory === 'discarded' ?
-            `${usernameMap[sourceUserId]}'s discarded` :
+            `${usernameMap[sourceUserId]}` :
             'their revealed';
 
           emitLog(`${usernameMap[userId]} took from ${message}`, draggableId);
