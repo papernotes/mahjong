@@ -130,8 +130,7 @@ function HomePage() {
                   >
                     New Room
                   </Button>
-
-                  <Button onClick={handleJoinLobby}>Join a lobby</Button>
+                  <Button disabled={invalidText} onClick={handleJoinLobby}>Join a lobby</Button>
                 </ButtonGroup>
               </Grid>
             </Grid>
