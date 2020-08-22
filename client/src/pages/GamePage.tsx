@@ -8,6 +8,7 @@ import PlayerMoves from '../components/PlayerMoves';
 import DiscardArea from '../components/DiscardArea';
 import RevealedArea from '../components/RevealedArea';
 import GameLog from '../components/GameLog';
+import AppToolbar from '../components/AppToolbar';
 
 import Grid from '@material-ui/core/Grid';
 import Dialog from '@material-ui/core/Dialog';
@@ -118,7 +119,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     return usernameUnsub;
   }
 
-  function createSharedTileMap(uids : number[]) {
+  function createSharedTileMap(uids : string[]) {
     const newMap : SharedTileMapping = {};
     uids.forEach(uid => {
       newMap[uid] = [];
@@ -163,7 +164,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     updateSharedTileMap(destUserId, secondary, category);
   }
 
-  function createUsernameMap(uids : string) {
+  function createUsernameMap(uids : string[]) {
     const newMap : UsernameMapping = {};
     for (const uid of uids) {
       newMap[uid] = ''
@@ -194,6 +195,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
           const data = doc.data();
           if (data) {
             const uids = data.userIds;
+            if (uids.length !== 4) history.push(`/game/${roomId}/lobby`)
             setUids(uids);
             setUsernameMap(createUsernameMap(uids));
             setDiscardMap(createSharedTileMap(uids));
@@ -382,48 +384,51 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
 
   // TODO create newRoom button for roomOwner only
   return (
-    <DragDropContext
-      onDragEnd={onDragEnd}>
-      <div>
-        <Grid container spacing={1}>
-          <Grid item xs={4}/>
-          <Grid item xs={4}>
-            <Paper>{generateOtherUserArea(1)}</Paper>
+    <div>
+      <AppToolbar/>
+      <DragDropContext
+        onDragEnd={onDragEnd}>
+        <div>
+          <Grid container spacing={1}>
+            <Grid item xs={4}/>
+            <Grid item xs={4}>
+              <Paper>{generateOtherUserArea(1)}</Paper>
+            </Grid>
+            <Grid item xs={4}/>
+            <Grid item xs={4}>
+              <Paper>{generateOtherUserArea(2)}</Paper>
+            </Grid>
+            <Grid item xs={4}>
+              <Paper>
+                <h3>Tiles left: {tilesLeft}</h3>
+                <GameLog roomId={roomId}/>
+              </Paper>
+            </Grid>
+            <Grid item xs={4}>
+              <Paper>{generateOtherUserArea(0)}</Paper>
+            </Grid>
+            <Grid item xs={8}>
+              <Paper>{createCurrentUserArea()}</Paper>
+            </Grid>
+            <Grid item xs={4}>
+              <PlayerMoves username={usernameMap[userId]} roomId={roomId}/>
+              <Paper><RevealedArea key={4} tiles={revealedMap[userId] || []} userId={userId}/></Paper>
+              <Dialog onClose={() => setOpen(false)} open={open}>
+                <DialogContentText>
+                  <h2>Are you sure you want to reveal your hand?</h2>
+                </DialogContentText>
+                <div className={classes.root}>
+                  <ButtonGroup size='large'>
+                    <Button color='default' onClick={revealHand}>Yes, I'm sure</Button>
+                    <Button color='secondary' onClick={() => setOpen(false)}>No, just kidding</Button>
+                  </ButtonGroup>
+                </div>
+              </Dialog>
+            </Grid>
           </Grid>
-          <Grid item xs={4}/>
-          <Grid item xs={4}>
-            <Paper>{generateOtherUserArea(2)}</Paper>
-          </Grid>
-          <Grid item xs={4}>
-            <Paper>
-              <h3>Tiles left: {tilesLeft}</h3>
-              <GameLog roomId={roomId}/>
-            </Paper>
-          </Grid>
-          <Grid item xs={4}>
-            <Paper>{generateOtherUserArea(0)}</Paper>
-          </Grid>
-          <Grid item xs={8}>
-            <Paper>{createCurrentUserArea()}</Paper>
-          </Grid>
-          <Grid item xs={4}>
-            <PlayerMoves username={usernameMap[userId]} roomId={roomId}/>
-            <Paper><RevealedArea key={4} tiles={revealedMap[userId] || []} userId={userId}/></Paper>
-            <Dialog onClose={() => setOpen(false)} open={open}>
-              <DialogContentText>
-                <h2>Are you sure you want to reveal your hand?</h2>
-              </DialogContentText>
-              <div className={classes.root}>
-                <ButtonGroup size='large'>
-                  <Button color='default' onClick={revealHand}>Yes, I'm sure</Button>
-                  <Button color='secondary' onClick={() => setOpen(false)}>No, just kidding</Button>
-                </ButtonGroup>
-              </div>
-            </Dialog>
-          </Grid>
-        </Grid>
-      </div>
-    </DragDropContext>
+        </div>
+      </DragDropContext>
+    </div>
   );
 }
 

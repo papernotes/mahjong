@@ -7,6 +7,8 @@ import TextField from '@material-ui/core/TextField';
 import { makeStyles } from '@material-ui/core/styles';
 import firebase, { db } from '../firebase';
 import { UserContext } from '../context';
+import AppToolbar from '../components/AppToolbar';
+
 
 
 const useStyles = makeStyles((theme) => ({
@@ -81,42 +83,44 @@ function HomePage() {
   }
 
   return (
-    <Grid
-      container
-      spacing={0}
-      direction='column'
-      alignItems='center'
-      justify='center'
-      style={{minHeight: '100vh'}}
-    >
-      <div className={classes.root}>
-        <Paper elevation={3}>
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <TextField
-                error={invalidText}
-                value={username}
-                onChange={validateText}
-                id='outlined-basic'
-                label='Username'
-                variant='outlined'
-              />
+    <div>
+      <AppToolbar/>
+      <Grid
+        container
+        spacing={0}
+        direction='column'
+        alignItems='center'
+        justify='center'
+        style={{minHeight: '100vh'}}
+      >
+        <div className={classes.root}>
+          <Paper elevation={3}>
+            <Grid container spacing={3}>
+              <Grid item xs={12}>
+                <TextField
+                  error={invalidText}
+                  value={username}
+                  onChange={validateText}
+                  id='outlined-basic'
+                  label='Username'
+                  variant='outlined'
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Button
+                  variant='contained'
+                  disabled={invalidText}
+                  color='primary'
+                  onClick={handleCreateNewRoom}
+                >
+                  New Room
+                </Button>
+              </Grid>
             </Grid>
-            <Grid item xs={12}>
-              <Button
-                variant='contained'
-                disabled={invalidText}
-                color='primary'
-                onClick={handleCreateNewRoom}
-              >
-                New Room
-              </Button>
-            </Grid>
-          </Grid>
-        </Paper>
-      </div>
-    </Grid>
-
+          </Paper>
+        </div>
+      </Grid>
+    </div>
   );
 }
 
