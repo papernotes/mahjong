@@ -1,12 +1,12 @@
+import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter, Switch, Route } from 'react-router-dom';
+import firebase, { db } from './firebase';
+
 import GamePage from './pages/GamePage';
 import HomePage from './pages/HomePage';
-import LobbyPage from './pages/LobbyPage';
 import LoadingPage from './pages/LoadingPage';
-import firebase, { db } from './firebase';
+import LobbyPage from './pages/LobbyPage';
 import { UserContext } from './context';
-
 
 function App() {
   const [userId, setUserId] = useState('');

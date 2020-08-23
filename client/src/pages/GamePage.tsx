@@ -1,24 +1,22 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
-import { DragDropContext } from 'react-beautiful-dnd';
-import { UserContext } from '../context';
+import { Theme, createStyles, makeStyles } from '@material-ui/core/styles';
+import firebase, { db } from '../firebase';
 
-import HandArea from '../components/HandArea';
-import PlayerMoves from '../components/PlayerMoves';
-import DiscardArea from '../components/DiscardArea';
-import RevealedArea from '../components/RevealedArea';
-import GameLog from '../components/GameLog';
 import AppToolbar from '../components/AppToolbar';
-
-import Grid from '@material-ui/core/Grid';
-import Dialog from '@material-ui/core/Dialog';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import Paper from '@material-ui/core/Paper';
 import Button from '@material-ui/core/Button';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
-import { makeStyles, createStyles, Theme } from '@material-ui/core/styles';
-
-import firebase, { db } from '../firebase';
+import Dialog from '@material-ui/core/Dialog';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DiscardArea from '../components/DiscardArea';
+import { DragDropContext } from 'react-beautiful-dnd';
+import GameLog from '../components/GameLog';
+import Grid from '@material-ui/core/Grid';
+import HandArea from '../components/HandArea';
+import Paper from '@material-ui/core/Paper';
+import PlayerMoves from '../components/PlayerMoves';
+import RevealedArea from '../components/RevealedArea';
+import { UserContext } from '../context';
 
 type MatchParams = {
   roomId: string;

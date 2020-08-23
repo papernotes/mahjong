@@ -1,14 +1,15 @@
-import React, { useState, useContext, useEffect } from 'react';
-import { useHistory } from 'react-router-dom';
+import React, { useContext, useEffect, useState } from 'react';
+import firebase, { db } from '../firebase';
+
+import AppToolbar from '../components/AppToolbar';
+import Button from '@material-ui/core/Button';
+import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
-import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
-import { makeStyles } from '@material-ui/core/styles';
-import firebase, { db } from '../firebase';
 import { UserContext } from '../context';
-import AppToolbar from '../components/AppToolbar';
-import ButtonGroup from '@material-ui/core/ButtonGroup';
+import { makeStyles } from '@material-ui/core/styles';
+import { useHistory } from 'react-router-dom';
 
 const useStyles = makeStyles((theme) => ({
   root: {

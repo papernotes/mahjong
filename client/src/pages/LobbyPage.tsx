@@ -1,14 +1,15 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { RouteComponentProps, useHistory } from 'react-router-dom';
 import firebase, { db } from '../firebase';
-import { UserContext } from '../context';
+
 import AppToolbar from '../components/AppToolbar';
-import Grid from '@material-ui/core/Grid';
-import Paper from '@material-ui/core/Paper';
-import List from '@material-ui/core/List';
 import Button from '@material-ui/core/Button';
+import Grid from '@material-ui/core/Grid';
+import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import Paper from '@material-ui/core/Paper';
 import Typography from '@material-ui/core/Typography'
+import { UserContext } from '../context';
 
 type MatchParams = {
   roomId: string

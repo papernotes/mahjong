@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import TileUtils from '../utils/TileUtils';
-import TileUnicode from '../utils/TileUnicode';
-import styled from 'styled-components';
+
 import { Draggable } from 'react-beautiful-dnd';
+import TileUnicode from '../utils/TileUnicode';
+import TileUtils from '../utils/TileUtils';
 import Tooltip from '@material-ui/core/Tooltip';
+import styled from 'styled-components';
 
 type TileProps = {
   id: number;

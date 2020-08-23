@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import TileUtils from '../utils/TileUtils';
-import TileUnicode from '../utils/TileUnicode';
+import React, { useEffect, useState } from 'react';
+import { Theme, makeStyles, withStyles } from '@material-ui/core/styles';
+
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import TileUnicode from '../utils/TileUnicode';
+import TileUtils from '../utils/TileUtils';
 import Tooltip from '@material-ui/core/Tooltip';
-import { withStyles, Theme, makeStyles } from '@material-ui/core/styles';
 import { db } from '../firebase';
 
 type GameLogProps = {

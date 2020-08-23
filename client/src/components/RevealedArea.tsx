@@ -1,7 +1,7 @@
-import React from 'react';
 import { Droppable } from 'react-beautiful-dnd';
-import styled from "styled-components";
+import React from 'react';
 import TileList from '../components/TileList';
+import styled from "styled-components";
 
 type RevealedAreaProps = {
   userId: string;

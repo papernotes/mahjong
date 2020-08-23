@@ -1,6 +1,6 @@
 import React from 'react';
-import styled from "styled-components";
 import Tile from '../components/Tile';
+import styled from "styled-components";
 
 const TileListStyle = styled.div`
   padding: 10px;
