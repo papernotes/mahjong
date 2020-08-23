@@ -46,6 +46,9 @@ function App() {
             })
             .then((res) => {
               setUserCreated(true);
+            })
+            .catch((err) => {
+              console.error(err);
             });
           }
         })

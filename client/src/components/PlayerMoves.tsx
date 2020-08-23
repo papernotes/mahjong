@@ -31,7 +31,7 @@ function PlayerMoves({ roomId, username }: PlayerMovesProps) {
         .catch(e => {
           console.log(e);
         })
-    } catch (err) {
+    } catch(err) {
       console.error("error", err);
     }
   }
@@ -40,8 +40,8 @@ function PlayerMoves({ roomId, username }: PlayerMovesProps) {
     const drawTile = firebase.functions().httpsCallable('drawTile');
     try {
       drawTile({userId: userId, roomId: roomId})
-        .then( (data) => {
-          emitLog(`${username} drew a tile`, -1)
+        .then((data) => {
+          void emitLog(`${username} drew a tile`, -1)
           console.log('Drew tile: ', data['data']['tileId']);
         })
         .catch(e => {

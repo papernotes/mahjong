@@ -73,8 +73,8 @@ function HomePage() {
       if (invalidText) {
         return;
       }
-      updateUsername();
-      createNewRoom({userId: userId, username: username}).then( (data) => {
+      void updateUsername();
+      void createNewRoom({userId: userId, username: username}).then( (data) => {
         history.push('/game/' + data['data']['roomId'] + '/lobby');
       })
     } catch (err) {

@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useContext } from 'react';
-import { RouteComponentProps } from 'react-router-dom';
-import { useHistory } from 'react-router-dom';
+import { RouteComponentProps, useHistory } from 'react-router-dom';
 import firebase, { db } from '../firebase';
 import { UserContext } from '../context';
 import AppToolbar from '../components/AppToolbar';
@@ -25,9 +24,9 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
 
   function startGame() {
     // TODO verify there are 4 users in the lobby in firebase to go to game
-    const startGame = firebase.functions().httpsCallable('startGame');
+    const startGameCall = firebase.functions().httpsCallable('startGame');
     try {
-      startGame({userId: userId, roomId: roomId})
+      startGameCall({userId: userId, roomId: roomId})
         .then((res) => {
           history.push('/game/' + roomId + '/game');
         })

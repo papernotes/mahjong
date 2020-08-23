@@ -93,10 +93,10 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     return sharedUnsub;
   }
 
-  function setSharedTileAreaListeners(uids : string[]) {
+  function setSharedTileAreaListeners(otherUids : string[]) {
     const unsubs : Function[] = [];
 
-    uids.forEach(uid => {
+    otherUids.forEach(uid => {
       unsubs.push(createSharedTileListener(uid, discardMap, 'discarded'));
       unsubs.push(createSharedTileListener(uid, discardMap, 'revealed'));
       unsubs.push(createUsernameListener(uid));
@@ -119,9 +119,9 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     return usernameUnsub;
   }
 
-  function createSharedTileMap(uids : string[]) {
+  function createSharedTileMap(otherUids : string[]) {
     const newMap : SharedTileMapping = {};
-    uids.forEach(uid => {
+    otherUids.forEach(uid => {
       newMap[uid] = [];
     })
     return newMap;
@@ -145,8 +145,8 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
   }
 
   // TODO make transaction?
-  function updateFirestore(newTiles : number[], category : string, userId : string) {
-    const handRef = db.collection(`rooms/${roomId}/${category}/`).doc(userId)
+  function updateFirestore(newTiles : number[], category : string, otherUserId : string) {
+    const handRef = db.collection(`rooms/${roomId}/${category}/`).doc(otherUserId)
     return handRef.update({
       tiles: newTiles
     })
@@ -158,15 +158,15 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
 
   // Update Hand <-> (Discard/Revealed)
   function sharedWithHandDragUpdate(primary : number[], secondary: number[], destUserId : string, category : string) {
-    updateFirestore(primary, 'hand', userId);
-    updateFirestore(secondary, category, destUserId);
+    void updateFirestore(primary, 'hand', userId);
+    void updateFirestore(secondary, category, destUserId);
     setTiles(primary);
     updateSharedTileMap(destUserId, secondary, category);
   }
 
-  function createUsernameMap(uids : string[]) {
+  function createUsernameMap(otherUids : string[]) {
     const newMap : UsernameMapping = {};
-    for (const uid of uids) {
+    for (const uid of otherUids) {
       newMap[uid] = ''
     }
     return newMap
@@ -194,17 +194,20 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
         .then((doc) => {
           const data = doc.data();
           if (data) {
-            const uids = data.userIds;
-            if (uids.length !== 4) history.push(`/game/${roomId}/lobby`)
-            setUids(uids);
-            setUsernameMap(createUsernameMap(uids));
-            setDiscardMap(createSharedTileMap(uids));
-            setRevealedMap(createSharedTileMap(uids));
+            const dataUids = data.userIds;
+            if (dataUids.length !== 4) history.push(`/game/${roomId}/lobby`)
+            setUids(dataUids);
+            setUsernameMap(createUsernameMap(dataUids));
+            setDiscardMap(createSharedTileMap(dataUids));
+            setRevealedMap(createSharedTileMap(dataUids));
             setCreatedMap(true);
           } else {
             console.error("No room found");
             history.push('/');
           }
+        })
+        .catch((err) => {
+          console.error(err);
         });
 
       const handRef = db.collection(`rooms/${roomId}/hand`).doc(userId);
@@ -263,8 +266,8 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     // Reordering within the same area
     if (start === finish) {
       let newTiles : number[];
-      let inHand = startCategory === 'hand';
-      let startUserId = start.split('/')[1];
+      const inHand = startCategory === 'hand';
+      const startUserId = start.split('/')[1];
 
       // Do not allow users reorder if it's not their own revealed area
       if (startCategory === 'revealed' && startUserId !== userId) return;
@@ -282,8 +285,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
       } else {
         updateSharedTileMap(startUserId, newTiles, startCategory);
       }
-
-      updateFirestore(newTiles, startCategory, startUserId);
+      void updateFirestore(newTiles, startCategory, startUserId);
     }
     // Dragging from one area to another
     else {
@@ -304,7 +306,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
           spliceUpdate(primary, secondary, source.index, destination.index, draggableId);
           sharedWithHandDragUpdate(primary, secondary, destUserId, endCategory);
 
-          emitLog(`${usernameMap[userId]}
+          void emitLog(`${usernameMap[userId]}
             ${endCategory === 'revealed' ? 'revealed' : 'discarded'}`, parseInt(draggableId)
           );
         }
@@ -323,7 +325,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
             `${usernameMap[sourceUserId]}` :
             'their revealed';
 
-          emitLog(`${usernameMap[userId]} took from ${message}`, draggableId);
+          void emitLog(`${usernameMap[userId]} took from ${message}`, draggableId);
         }
       }
     }
@@ -333,10 +335,10 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     const newTiles = revealedMap[userId].concat(JSON.parse(JSON.stringify(tiles)));
     updateSharedTileMap(userId, newTiles, 'revealed');
     setTiles([]);
-    updateFirestore([], 'hand', userId);
-    updateFirestore(newTiles, 'revealed', userId);
+    void updateFirestore([], 'hand', userId);
+    void updateFirestore(newTiles, 'revealed', userId);
     setOpen(false);
-    emitLog(`${usernameMap[userId]} revealed their hand!`, -1)
+    void emitLog(`${usernameMap[userId]} revealed their hand!`, -1)
   }
 
   function createCurrentUserArea() {

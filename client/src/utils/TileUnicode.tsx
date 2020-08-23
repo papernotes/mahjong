@@ -45,8 +45,8 @@ class TileUnicode {
     }
 
     let baseString : string = '1f0';
-    let rowNumber = TileUnicode.getRow(type, count);
-    let colNumber = RANGES[type][count-1]
+    const rowNumber = TileUnicode.getRow(type, count);
+    const colNumber = RANGES[type][count-1]
 
     baseString = baseString + rowNumber + colNumber;
 

@@ -32,11 +32,11 @@ function Tile(props : TileProps) {
     setId(props.id);
   }, [props.id]);
 
-  function getUnicodeString(id : number) {
-    if (id === -1) return TileUnicode.getBackTile();
+  function getUnicodeString(tileId : number) {
+    if (tileId === -1) return TileUnicode.getBackTile();
     let count;
     let type;
-    [count, type] = TileUtils.getTileName(id).split('/');
+    [count, type] = TileUtils.getTileName(tileId).split('/');
     return TileUnicode.getUnicodeString(parseInt(count), type);
   }
 
