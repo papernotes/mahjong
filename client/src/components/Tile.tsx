@@ -12,12 +12,12 @@ type TileProps = {
 }
 
 const TileStyle = styled.div`
-  width: 55px;
-  height: 70px;
+  width: 47px;
+  height: 61.5px;
   background-color: floralwhite;
   border: 3px;
   touch-action: none;
-  border-radius: 10px;
+  border-radius: 8px;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -28,6 +28,7 @@ const TileStyle = styled.div`
 
 function Tile(props : TileProps) {
   const [id, setId] = useState(-1);
+  const fontSize = 63.3;
 
   useEffect( () => {
     setId(props.id);
@@ -51,7 +52,7 @@ function Tile(props : TileProps) {
             ref={provided.innerRef}
             className='tile' id={id.toString()}
           >
-          <p style={{fontSize: 75}}>{getUnicodeString(id)}</p>
+          <p style={{fontSize: fontSize}}>{getUnicodeString(id)}</p>
           </TileStyle>
         </Tooltip>
       )}
