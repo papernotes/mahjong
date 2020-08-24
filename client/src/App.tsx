@@ -18,13 +18,11 @@ function App() {
     firebase.auth().onAuthStateChanged(function(user) {
       if (user) {
         setUserId(user.uid);
-      } else {
-        console.log("user logged out");
       }
     })
 
     firebase.auth().signInAnonymously().catch(function(err) {
-      console.log('error', err)
+      console.error('error', err)
     })
 
   }, [userId]);

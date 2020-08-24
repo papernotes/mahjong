@@ -175,7 +175,7 @@ function GamePage({match} : RouteComponentProps<MatchParams>) {
     try {
       drawTile({message: message, roomId: roomId, tileId: tileId})
         .catch(e => {
-          console.log(e);
+          console.error(e);
         })
     } catch (err) {
       console.error("error", err);

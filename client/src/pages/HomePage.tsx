@@ -84,6 +84,7 @@ function HomePage() {
   }
 
   function handleJoinLobby() {
+    void updateUsername();
     history.push(`/game/${lobbyId}/lobby`);
   }
 

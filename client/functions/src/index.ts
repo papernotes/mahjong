@@ -1,5 +1,5 @@
-import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
+import * as functions from 'firebase-functions';
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -94,8 +94,8 @@ export const joinRoom = functions.https.onCall( async (data, context) => {
 async function setRoomTiles(roomId: string) {
   const mappingRef = db.collection('mappings').doc(roomId)
   const countRef = db.collection(`mappings/${roomId}/tilesLeft`).doc('count');
-  mappingRef.set({order: shuffleTiles()})
-  countRef.set({count: numTiles});
+  void mappingRef.set({order: shuffleTiles()})
+  void countRef.set({count: numTiles});
 }
 
 async function addUserToRoom(userId: string, roomId: string) {
@@ -111,7 +111,7 @@ async function addUserToRoom(userId: string, roomId: string) {
   batch.set(revealedRef, {'tiles': []});
   batch.set(handRef, {'tiles': []});
 
-  batch.commit();
+  void batch.commit();
 }
 
 export const startGame = functions.https.onCall(async(data, context) => {
@@ -183,14 +183,14 @@ export const drawTile = functions.runWith(drawTileOpts).https.onCall( async(data
   try {
     return await db.runTransaction(async t => {
       const doc = await t.get(mappingRef);
-      const data = doc.data();
-      if (!doc || !data) {
+      const mapData = doc.data();
+      if (!doc || !mapData) {
         throw new functions.https.HttpsError(
           'not-found',
           'Room not found'
         );
       }
-      const order = data.order;
+      const order = mapData.order;
       if (order.length <= 0) {
         throw new functions.https.HttpsError(
           'not-found',
@@ -227,13 +227,16 @@ export const logLastAction = functions.https.onCall( async(data, context) => {
   const roomRef = db.doc(`rooms/${roomId}`);
 
   try {
-    return await db.runTransaction(async t => {
-      await t.update(roomRef, {
+    await db.runTransaction(async t => {
+      t.update(roomRef, {
         lastAction: message,
         lastActionTileId: tileId,
         numActions: admin.firestore.FieldValue.increment(1)
       });
     })
+    .catch((err) => {
+      functions.logger.error(err);
+    });
   } catch (e) {
     functions.logger.error(e);
     throw e;

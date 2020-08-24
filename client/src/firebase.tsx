@@ -17,9 +17,11 @@ const config = {
 
 firebase.initializeApp(config);
 
-if (process.env.REACT_APP_LOCAL_DEV) {
+if (process.env.REACT_APP_LOCAL_DEV === 'true') {
   firebase.functions().useFunctionsEmulator('http://localhost:5001');
   firebase.firestore().settings({host:'localhost:8080', ssl: false});
+} else {
+  firebase.firestore().settings({experimentalForceLongPolling: true});
 }
 
 export const db = firebase.firestore();

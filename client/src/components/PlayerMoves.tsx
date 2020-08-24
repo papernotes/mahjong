@@ -30,7 +30,7 @@ function PlayerMoves({ roomId, username }: PlayerMovesProps) {
     try {
       drawTile({message: message, roomId: roomId, tileId: tileId})
         .catch(e => {
-          console.log(e);
+          console.error(e);
         })
     } catch(err) {
       console.error("error", err);
@@ -43,10 +43,10 @@ function PlayerMoves({ roomId, username }: PlayerMovesProps) {
       drawTile({userId: userId, roomId: roomId})
         .then((data) => {
           void emitLog(`${username} drew a tile`, -1)
-          console.log('Drew tile: ', data['data']['tileId']);
+          // console.log('Drew tile: ', data['data']['tileId']);
         })
         .catch(e => {
-          console.log(e);
+          console.error(e);
         })
     } catch (err) {
       console.error("error", err);

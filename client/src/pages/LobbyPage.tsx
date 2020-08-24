@@ -46,7 +46,6 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
       if (data) {
         setUsernames(data.usernames);
         setRoomOwner(data.roomOwner);
-        console.log(data.startedGame);
         if (data.startedGame) {
           startGame();
         }
@@ -57,9 +56,6 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
       const joinRoom = firebase.functions().httpsCallable('joinRoom');
       try {
         joinRoom({userId: userId, roomId: roomId})
-          .then((res) => {
-            console.log(res);
-          })
           .catch((err) => {
             if (err.code === 'failed-precondition') {
               console.error('Cannot join room - lobby full');
@@ -68,7 +64,7 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
               history.push('/');
               console.error('Non existent room')
             }
-            console.log('Still creating user');
+            // console.log('Still creating user');
           })
       } catch (err) {
         console.error('err');
