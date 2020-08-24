@@ -64,8 +64,7 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
               history.push('/');
               console.error('Non existent room')
             }
-            // console.log('Still creating user');
-          })
+          });
       } catch (err) {
         console.error('err');
       }
@@ -79,6 +78,9 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
   }, [roomId, userId, userCreated])
 
   function listUsernames() {
+    if (usernames.length === 0) {
+      return '';
+    }
     return(
       <List>
         {usernames.map( (username, index) => <ListItem key={index}>{username}</ListItem>)}
@@ -94,12 +96,12 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
         direction='column'
         alignItems='center'
         justify='center'
-        style={{minHeight:'100vh'}}
+        style={{minHeight:'90vh'}}
       >
         <Grid item xs={12}>
           <Paper style={{minWidth: '25vw'}}>
             <Typography variant='h5'>Lobby</Typography>
-            {listUsernames()}
+            {listUsernames() || 'Loading users...'}
           </Paper>
         </Grid>
         <Grid item xs={9}>

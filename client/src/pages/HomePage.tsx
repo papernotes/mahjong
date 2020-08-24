@@ -5,6 +5,7 @@ import AppToolbar from '../components/AppToolbar';
 import Button from '@material-ui/core/Button';
 import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Grid from '@material-ui/core/Grid';
+import LinearProgress from '@material-ui/core/LinearProgress';
 import Paper from '@material-ui/core/Paper';
 import TextField from '@material-ui/core/TextField';
 import { UserContext } from '../context';
@@ -32,6 +33,8 @@ function HomePage() {
 
   const [username, setUsername] = useState('');
   const [invalidText, setInvalidText] = useState(false);
+  const [invalidLobby, setInvalidLobby] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [lobbyId, setLobbyId] = useState('');
 
   useEffect( () => {
@@ -69,6 +72,7 @@ function HomePage() {
   }
 
   async function handleCreateNewRoom() {
+    setLoading(true);
     const createNewRoom = firebase.functions().httpsCallable('newRoom');
     try {
       if (invalidText) {
@@ -88,6 +92,16 @@ function HomePage() {
     history.push(`/game/${lobbyId}/lobby`);
   }
 
+  function validateLobby(e : any) {
+    const text = e.target.value;
+    setLobbyId(text);
+    if (text.length === 0) {
+      setInvalidLobby(true);
+    } else {
+      setInvalidLobby(false);
+    }
+  }
+
   return (
     <div>
       <AppToolbar/>
@@ -97,7 +111,7 @@ function HomePage() {
         direction='column'
         alignItems='center'
         justify='center'
-        style={{minHeight: '100vh'}}
+        style={{minHeight: '90vh'}}
       >
         <div className={classes.root}>
           <Paper elevation={3}>
@@ -117,7 +131,7 @@ function HomePage() {
                   error={invalidText}
                   value={lobbyId}
                   id='outlined-lobby-id'
-                  onChange={(e) => setLobbyId(e.target.value)}
+                  onChange={validateLobby}
                   label='Lobby Id'
                   variant='outlined'
                 />
@@ -132,8 +146,11 @@ function HomePage() {
                   >
                     New Room
                   </Button>
-                  <Button disabled={invalidText} onClick={handleJoinLobby}>Join a lobby</Button>
+                  <Button disabled={invalidText || invalidLobby} onClick={handleJoinLobby}>Join a lobby</Button>
                 </ButtonGroup>
+              </Grid>
+              <Grid item xs={12}>
+                {loading && <LinearProgress/>}
               </Grid>
             </Grid>
           </Paper>
