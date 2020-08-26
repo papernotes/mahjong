@@ -5,10 +5,11 @@ import firebase, { db } from '../firebase';
 import AppToolbar from '../components/AppToolbar';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
+import LinearProgress from '@material-ui/core/LinearProgress';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import Paper from '@material-ui/core/Paper';
-import Typography from '@material-ui/core/Typography'
+import Typography from '@material-ui/core/Typography';
 import { UserContext } from '../context';
 
 type MatchParams = {
@@ -20,12 +21,14 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
   const userId = useContext(UserContext).userId;
   const userCreated = useContext(UserContext).userCreated;
   const roomId = match.params.roomId;
+  const [loading, setLoading] = useState(false);
   const [usernames, setUsernames] = useState<string[]>([]);
   const [roomOwner, setRoomOwner] = useState('');
 
   function startGame() {
     // TODO verify there are 4 users in the lobby in firebase to go to game
     const startGameCall = firebase.functions().httpsCallable('startGame');
+    setLoading(true);
     try {
       startGameCall({userId: userId, roomId: roomId})
         .then((res) => {
@@ -33,9 +36,11 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
         })
         .catch((err) => {
           console.error(err);
+          setLoading(false);
         });
     } catch (e) {
       console.error(e);
+      setLoading(false);
     }
   }
 
@@ -109,6 +114,7 @@ function LobbyPage({match} : RouteComponentProps<MatchParams>) {
               (userId === roomOwner) &&
               <Button onClick={startGame} disabled={usernames.length !== 4}>Start game for everyone</Button>
             }
+            { loading && <LinearProgress/> }
           </Grid>
       </Grid>
     </div>

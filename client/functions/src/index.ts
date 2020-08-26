@@ -59,13 +59,10 @@ export const joinRoom = functions.https.onCall( async (data, context) => {
       let newCount = roomData.numUsers;
 
       if (userIds.includes(userId)) {
-        throw new functions.https.HttpsError(
-          'already-exists',
-          'User already added to room'
-        );
+        functions.logger.info('User already added to room');
+        return;
       }
 
-      // TODO
       if (newCount >= 4) {
         throw new functions.https.HttpsError(
           'failed-precondition',
@@ -78,7 +75,7 @@ export const joinRoom = functions.https.onCall( async (data, context) => {
       }
 
       await addUserToRoom(userId, roomId);
-      await t.update(roomRef, {
+      t.update(roomRef, {
         userIds: admin.firestore.FieldValue.arrayUnion(userId),
         usernames: admin.firestore.FieldValue.arrayUnion(username),
         numUsers: newCount
@@ -125,7 +122,7 @@ export const startGame = functions.https.onCall(async(data, context) => {
       const roomData = roomDoc.data();
 
       if (roomData && roomData.roomOwner === userId) {
-        await t.update(roomRef, {
+        t.update(roomRef, {
           startedGame: true
         });
       }
@@ -198,13 +195,13 @@ export const drawTile = functions.runWith(drawTileOpts).https.onCall( async(data
         );
       }
       const tileId = order[0];
-      await t.update(userHandRef, {
+      t.update(userHandRef, {
         tiles: admin.firestore.FieldValue.arrayUnion(tileId)
       });
-      await t.update(mappingRef, {
+      t.update(mappingRef, {
         order: admin.firestore.FieldValue.arrayRemove(tileId)
       });
-      await t.update(countRef, {
+      t.update(countRef, {
         count: admin.firestore.FieldValue.increment(-1)
       })
 
